@@ -23,14 +23,27 @@ namespace Server.Controllers
             _context = context;
         }
 
-        [HttpGet("")]
-        public IActionResult Index()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
         {
-            return View();
+            return await _context.Posts.ToListAsync();
+        }
+
+        [HttpGet("users/{id}")]
+        public async Task<ActionResult<User>> GetUser(int id)
+        {
+            var oneUser = await _context.Users.FindAsync(id);
+
+            if (oneUser == null)
+            {
+                return NotFound();
+            }
+
+            return oneUser;
         }
 
         [HttpPost("users/create")]
-        public IActionResult CreateUser(User newUser)
+        public async Task<ActionResult<User>> CreateUser([FromBody] User newUser)
         {
             if (ModelState.IsValid)
             {
@@ -38,53 +51,48 @@ namespace Server.Controllers
                 newUser.Password = Hasher.HashPassword(newUser, newUser.Password);
 
                 _context.Add(newUser);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
-                HttpContext.Session.SetInt32("UserId", newUser.UserId);
-                return RedirectToAction("Dashboard");
+                return CreatedAtAction(nameof(GetUser), new { id = newUser.UserId }, newUser);
             }
             else
             {
-                return View("Index");
+                return BadRequest(ModelState);
             }
         }
 
         [HttpPost("users/login")]
-        public IActionResult UserLogin(LoginUser LogUser)
+        public async Task<ActionResult<User>> LoginUser([FromBody] User user)
         {
-            if (ModelState.IsValid)
-            {
-                User? userInDb = _context.Users.FirstOrDefault(u => u.Email == LogUser.LEmail);
+            var oneUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
 
-                if (userInDb == null)
-                {
-                    ModelState.AddModelError("LEmail", "Invalid Email/Password");
-                    return View("Index");
-                }
-                PasswordHasher<LoginUser> hasher = new PasswordHasher<LoginUser>();
-                var result = hasher.VerifyHashedPassword(LogUser, userInDb.Password, LogUser.LPassword);
-                if (result == 0)
-                {
-                    ModelState.AddModelError("LEmail", "Invalid Email/Password");
-                    return View("Index");
-                }
-                else
-                {
-                    HttpContext.Session.SetInt32("UserId", userInDb.UserId);
-                    return RedirectToAction("Dashboard");
-                }
-            }
-            else
+            if (oneUser == null)
             {
-                return View("Index");
+                return NotFound();
             }
+
+            var hasher = new PasswordHasher<User>();
+            var result = hasher.VerifyHashedPassword(user, oneUser.Password, user.Password);
+
+            if (result == 0)
+            {
+                return BadRequest();
+            }
+
+            return oneUser;
         }
 
-        [SessionCheck]
-        [HttpGet("dashboard")]
-        public IActionResult Dashboard()
+        [HttpPost("users/logout")]
+        public async Task<ActionResult<User>> LogoutUser([FromBody] User user)
         {
-            return View();
+            var oneUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
+
+            if (oneUser == null)
+            {
+                return NotFound();
+            }
+
+            return oneUser;
         }
 
         public IActionResult Privacy()
