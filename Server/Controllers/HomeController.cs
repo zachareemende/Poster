@@ -100,6 +100,18 @@ namespace Server.Controllers
             return NoContent();
         }
 
+        [HttpGet("users/{userId}/posts")]
+        public async Task<ActionResult<IEnumerable<Post>>> GetUserPosts(int userId)
+        {
+            var userPosts = await _context.Posts.Where(p => p.UserId == userId).ToListAsync();
+
+            if (userPosts == null)
+            {
+                return NotFound();
+            }
+
+            return userPosts;
+        }
 
         [HttpGet("users/{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
