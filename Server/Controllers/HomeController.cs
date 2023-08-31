@@ -149,7 +149,6 @@ namespace Server.Controllers
             }
         }
 
-
         [HttpPost("users/login")]
         public async Task<ActionResult<AuthenticationResponse>> LoginUser([FromBody] LoginUser logUser)
         {
@@ -194,6 +193,150 @@ namespace Server.Controllers
             }
 
             return oneUser;
+        }
+
+        [HttpDelete("users/delete/{id}")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var oneUser = await _context.Users.FindAsync(id);
+
+            if (oneUser == null)
+            {
+                return NotFound();
+            }
+
+            // Check if the user has permission to delete this user (if needed)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Unauthorized if user claim is missing
+            }
+
+            // Check if the user is the owner of the user (if needed)
+
+            _context.Users.Remove(oneUser);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("posts/{id}/comments")]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)
+        {
+            var postComments = await _context.Comments.Where(c => c.PostId == id).ToListAsync();
+
+            if (postComments == null)
+            {
+                return NotFound();
+            }
+
+            return postComments;
+        }
+
+        [HttpPost("posts/{id}/comments/create")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<ActionResult<Comment>> PostComment(int id, [FromBody] Comment newComment)
+        {
+            if (ModelState.IsValid)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(); // Unauthorized if user claim is missing
+                }
+
+                newComment.UserId = int.Parse(userIdClaim.Value);
+                newComment.PostId = id;
+                _context.Comments.Add(newComment);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(
+                    nameof(GetComments),
+                    new { id = newComment.CommentId },
+                    newComment
+                );
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpGet("posts/{id}/likes")]
+        public async Task<ActionResult<IEnumerable<Like>>> GetLikes(int id)
+        {
+            var postLikes = await _context.Likes.Where(l => l.PostId == id).ToListAsync();
+
+            if (postLikes == null)
+            {
+                return NotFound();
+            }
+
+            return postLikes;
+        }
+
+        [HttpPost("posts/{id}/likes/create")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<ActionResult<Like>> PostLike(int id, [FromBody] Like newLike)
+        {
+            if (ModelState.IsValid)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(); // Unauthorized if user claim is missing
+                }
+
+                var userId = int.Parse(userIdClaim.Value);
+
+                // Check if the user has already liked the post
+                if (_context.Likes.Any(like => like.UserId == userId && like.PostId == id))
+                {
+                    return Conflict("User has already liked this post.");
+                }
+
+                newLike.UserId = userId;
+                newLike.PostId = id;
+                _context.Likes.Add(newLike);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(
+                    nameof(GetLikes),
+                    new { id = newLike.LikeId },
+                    newLike
+                );
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpDelete("posts/{id}/likes/delete")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<IActionResult> DeleteLike(int id)
+        {
+            var userLike = await _context.Likes.FindAsync(id);
+
+            if (userLike == null)
+            {
+                return NotFound();
+            }
+
+            // Check if the user has permission to delete this like (if needed)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Unauthorized if user claim is missing
+            }
+
+            // Check if the user is the owner of the like (if needed)
+
+            _context.Likes.Remove(userLike);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         public IActionResult Privacy()
