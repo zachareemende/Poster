@@ -29,6 +29,58 @@ namespace Server.Controllers
             return await _context.Posts.ToListAsync();
         }
 
+        [HttpGet("posts/{id}")]
+        public async Task<ActionResult<Post>> GetPost(int id)
+        {
+            var userPost = await _context.Posts.FindAsync(id);
+
+            if (userPost == null)
+            {
+                return NotFound();
+            }
+
+            return userPost;
+        }
+
+        [SessionCheck]
+        [HttpPost("posts/create")]
+        public async Task<ActionResult<Post>> PostPost([FromBody] Post newPost)
+        {
+            if (ModelState.IsValid)
+            {
+                newPost.UserId = (int)HttpContext.Session.GetInt32("UserId");
+                _context.Posts.Add(newPost);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(
+                    nameof(GetPost),
+                    new { id = newPost.PostId },
+                    newPost
+                );
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [SessionCheck]
+        [HttpDelete("posts/delete/{id}")]
+        public async Task<IActionResult> DeletePost(int id)
+        {
+            var userPost = await _context.Posts.FindAsync(id);
+
+            if (userPost == null)
+            {
+                return NotFound();
+            }
+
+            _context.Posts.Remove(userPost);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet("users/{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -106,17 +158,19 @@ namespace Server.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public class SessionCheckAttribute : ActionFilterAttribute
-        {
-            public override void OnActionExecuting(ActionExecutingContext context)
-            {
-                int? userId = context.HttpContext.Session.GetInt32("UserId");
-                if (userId == null)
-                {
-                    context.Result = new RedirectToActionResult("Index", "Home", null);
-                }
-            }
-        }
+        // public class SessionCheckAttribute : ActionFilterAttribute
+        // {
+        //     public override void OnActionExecuting(ActionExecutingContext context)
+        //     {
+        //         int? userId = context.HttpContext.Session.GetInt32("UserId");
+        //         if (userId == null)
+        //         {
+        //             context.Result = new RedirectToActionResult("Index", "Home", null);
+        //         }
+        //     }
+        // }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     }
 }
 
