@@ -349,18 +349,6 @@ namespace Server.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-
-        // public class SessionCheckAttribute : ActionFilterAttribute
-        // {
-        //     public override void OnActionExecuting(ActionExecutingContext context)
-        //     {
-        //         int? userId = context.HttpContext.Session.GetInt32("UserId");
-        //         if (userId == null)
-        //         {
-        //             context.Result = new RedirectToActionResult("Index", "Home", null);
-        //         }
-        //     }
-        // }
     }
 }
 
