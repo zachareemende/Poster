@@ -38,3 +38,15 @@ C:\Users\zacha\Documents\VSCode\projects\Poster\Server\obj\Debug\net7.0\refint\S
 C:\Users\zacha\Documents\VSCode\projects\Poster\Server\obj\Debug\net7.0\Server.pdb
 C:\Users\zacha\Documents\VSCode\projects\Poster\Server\obj\Debug\net7.0\Server.genruntimeconfig.cache
 C:\Users\zacha\Documents\VSCode\projects\Poster\Server\obj\Debug\net7.0\ref\Server.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.AspNetCore.Authorization.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.AspNetCore.Metadata.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.Extensions.Options.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\zacha\Documents\VSCode\projects\Poster\Server\bin\Debug\net7.0\System.IdentityModel.Tokens.Jwt.dll

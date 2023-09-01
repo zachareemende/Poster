@@ -19,8 +19,8 @@ namespace Server.Models
         public int UserId { get; set; }
         public User? User { get; set; }
 
-        public List<Like> Likes { get; set; }
-        public List<Comment> Comments { get; set; }
+        public List<Like> Likes { get; set; } = new List<Like>();
+        public List<Comment> Comments { get; set; } = new List<Comment>();
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
