@@ -30,8 +30,26 @@ namespace Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
         {
-            return await _context.Posts.ToListAsync();
+            var postsWithLikesAndUsernames = await _context.Posts
+                .Include(p => p.User)
+                .Include(p => p.Likes) // Include the Likes related to each post
+                .ToListAsync();
+
+            var postsDto = postsWithLikesAndUsernames.Select(post => new
+            {
+                PostId = post.PostId,
+                ImageUrl = post.ImageUrl,
+                Caption = post.Caption,
+                PostedAt = post.PostedAt,
+                UserId = post.UserId,
+                Username = post.User?.Username, // Get the username of the user who posted the photo
+                LikeCount = post.Likes.Count // Get the count of likes for the post
+            });
+
+            return Ok(postsDto);
         }
+
+
 
         [HttpGet("posts/{id}")]
         public async Task<ActionResult<Post>> GetPost(int id)
