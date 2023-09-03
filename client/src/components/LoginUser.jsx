@@ -33,7 +33,7 @@ const LoginUser = () => {
       console.log("Login successful:", response.data);
     } catch (error) {
       console.error("Login failed:", error);
-      setError("Login failed");
+    setError(errorMessage || "Login failed");
     }
   };
 
