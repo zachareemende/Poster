@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
 const AllPosts = () => {
@@ -23,14 +24,16 @@ const AllPosts = () => {
                 style={{ maxWidth: "512px", width: "100%", height: "640px" }}
               >
                 <p>Posted by: {Post.username}</p>
-                <img
-                  src={Post.imageUrl}
-                  alt="poster image"
-                  width={512}
-                  height={512}
-                  className="mx-auto"
-                  style={{ objectFit: "cover" }}
-                />
+                <Link to={`/posts/${Post.postId}`}>
+                  <img
+                    src={Post.imageUrl}
+                    alt="poster image"
+                    width={512}
+                    height={512}
+                    className="mx-auto"
+                    style={{ objectFit: "cover" }}
+                  />
+                </Link>
                 <h3>{Post.caption}</h3>
                 <p>Likes: {Post.likeCount}</p> {/* Display the like count */}
               </div>
