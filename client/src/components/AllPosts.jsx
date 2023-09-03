@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { clearToken } from "../redux/authSlice"; // Import the clearToken action
 
 const AllPosts = () => {
   const [posts, setPosts] = useState([]);
@@ -12,9 +14,20 @@ const AllPosts = () => {
       .catch((error) => console.error("Error fetching posts:", error));
   }, []);
 
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    // Dispatch the clearToken action
+    dispatch(clearToken());
+  };
+
   return (
     <div>
       <h1 className="text-center">All Posts</h1>
+      <Link to="/posts/create">Create a new post</Link>
+      <Link to="/register">Register</Link>
+      <Link to="/login">Login</Link>
+      <button onClick={handleLogout}>Logout</button>
       {posts.length > 0 ? (
         <ul>
           {posts.map((Post) => (

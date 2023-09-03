@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
 const CreatePost = ({ token }) => {
@@ -40,7 +40,7 @@ const CreatePost = ({ token }) => {
       setCaption("");
 
       // Redirect to the posts page or handle navigation as needed
-      history.push("/posts");
+      history("/");
     } catch (error) {
       console.error("Error creating post:", error);
     }
@@ -49,6 +49,7 @@ const CreatePost = ({ token }) => {
   return (
     <div>
       <h2>Create a New Post</h2>
+      <Link to="/">Back to all posts</Link>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="imageUrl">Image URL:</label>

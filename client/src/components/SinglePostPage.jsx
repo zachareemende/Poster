@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const SinglePostPage = () => {
   const { postId } = useParams();
@@ -15,6 +16,8 @@ const SinglePostPage = () => {
 
   return (
     <div>
+      <Link to="/">Back to all posts</Link>
+
       {post ? (
         <div>
           <h1>Post Details</h1>
