@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { clearToken, selectToken } from "../redux/authSlice"; // Import the clearToken action and selectToken selector
+import { clearToken, selectToken } from "../redux/authSlice";
 
 const AllPosts = () => {
   const [posts, setPosts] = useState([]);
-  const token = useSelector(selectToken); // Get token from Redux state
+  const token = useSelector(selectToken);
 
   useEffect(() => {
     axios
@@ -18,8 +18,8 @@ const AllPosts = () => {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    dispatch(clearToken()); // Clear token from Redux store
-    localStorage.removeItem("token"); // Remove token from localStorage
+    dispatch(clearToken());
+    localStorage.removeItem("token");
   };
 
   return (
@@ -47,10 +47,12 @@ const AllPosts = () => {
                   <img
                     src={Post.imageUrl}
                     alt="poster image"
-                    width={512}
-                    height={512}
                     className="mx-auto"
-                    style={{ objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      objectFit: "contain", // Change to "contain" for consistent size
+                      height: "500px", // Set a fixed height for consistency
+                    }}
                   />
                 </Link>
                 <h3>{Post.caption}</h3>

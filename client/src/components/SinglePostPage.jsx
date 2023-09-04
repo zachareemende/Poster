@@ -42,7 +42,9 @@ const SinglePostPage = () => {
 
   const handleLikeClick = async () => {
     if (!user.token) {
-      navigate("/login", { state: { error: "You must be logged in to do this!" } }); // Redirect to login page with error message
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      }); // Redirect to login page with error message
       return;
     }
 
@@ -115,14 +117,23 @@ const SinglePostPage = () => {
               <img
                 src={post.imageUrl}
                 alt="poster image"
-                className="mx-auto object-cover"
-                style={{ width: "50%" }}
+                className="mx-auto"
+                style={{
+                  width: "100%",
+                  objectFit: "contain", // Change this to "contain" to fit without cropping
+                  height: "500px", // Set a fixed height for consistency
+                }}
               />
             </div>
+
             <h3 className="text-lg font-semibold mb-2">{post.caption}</h3>
             <p className="mb-2 text-gray-600">Likes: {post.likeCount}</p>
             <button
-              className={isLiked ? "bg-red-600 text-white px-4 py-2 rounded-md" : "bg-blue-500 text-white px-4 py-2 rounded-md"}
+              className={
+                isLiked
+                  ? "bg-red-600 text-white px-4 py-2 rounded-md"
+                  : "bg-blue-500 text-white px-4 py-2 rounded-md"
+              }
               onClick={handleLikeClick}
             >
               {isLiked ? "Unlike" : "Like"}

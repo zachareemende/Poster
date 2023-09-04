@@ -11,22 +11,23 @@ import CreatePost from "./components/CreatePost";
 import ErrorPage from "./components/ErrorPage";
 import NotFound from "./components/NotFound";
 
-
 const App = () => {
   const token = useSelector((state) => state.auth.token);
 
   return (
     <div>
       <Routes>
+        {/* public routes */}
         <Route path="/login" element={<LoginUser />} />
         <Route path="/register" element={<RegisterUser />} />
         <Route path="/posts/:postId" element={<SinglePostPage />} />
         <Route path="/" element={<AllPosts />} />
+
+        {/* error handling */}
         <Route path="/error" element={<ErrorPage />} />
-        <Route path='*' element={<NotFound />}/>
+        <Route path="*" element={<NotFound />} />
 
-
-        {/* Use PrivateRoute for the /posts/create route */}
+        {/* private routes */}
         <Route path="/posts/create" element={<ProtectedRoute />}>
           {token !== null && (
             <Route
