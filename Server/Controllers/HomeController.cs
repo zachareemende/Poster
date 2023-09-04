@@ -54,14 +54,37 @@ namespace Server.Controllers
         [HttpGet("posts/{id}")]
         public async Task<ActionResult<Post>> GetPost(int id)
         {
-            var userPost = await _context.Posts.FindAsync(id);
+            var userPost = await _context.Posts
+                .Include(p => p.Likes) // Include the Likes navigation property
+                .Include(p => p.User) // Include the User navigation property
+                .Include(p => p.Comments) // Include the Comments navigation property
+                .FirstOrDefaultAsync(p => p.PostId == id);
 
             if (userPost == null)
             {
                 return NotFound();
             }
 
-            return userPost;
+            var postDto = new
+            {
+                PostId = userPost.PostId,
+                ImageUrl = userPost.ImageUrl,
+                Caption = userPost.Caption,
+                PostedAt = userPost.PostedAt,
+                UserId = userPost.UserId,
+                Username = userPost.User?.Username,
+                LikeCount = userPost.Likes.Count, // Get the count of likes for the post
+                Comments = userPost.Comments.Select(comment => new
+                {
+                    CommentId = comment.CommentId,
+                    Content = comment.Text,
+                    UserId = comment.UserId,
+                    Username = comment.User?.Username,
+                    Timestamp = comment.Timestamp
+                })
+            };
+
+            return Ok(postDto);
         }
 
         [HttpPost("posts/create")]
@@ -295,67 +318,88 @@ namespace Server.Controllers
         }
 
         [HttpPost("posts/{id}/likes/create")]
-        [Authorize] // Add this attribute for JWT authentication
-        public async Task<ActionResult<Like>> PostLike(int id, [FromBody] Like newLike)
+        [Authorize]
+        public async Task<ActionResult<Like>> PostLike(int id)
         {
-            if (ModelState.IsValid)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(); // Unauthorized if user claim is missing
-                }
-
-                var userId = int.Parse(userIdClaim.Value);
-
-                // Check if the user has already liked the post
-                if (_context.Likes.Any(like => like.UserId == userId && like.PostId == id))
-                {
-                    return Conflict("User has already liked this post.");
-                }
-
-                newLike.UserId = userId;
-                newLike.PostId = id;
-                _context.Likes.Add(newLike);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(
-                    nameof(GetLikes),
-                    new { id = newLike.LikeId },
-                    newLike
-                );
+                return Unauthorized();
             }
-            else
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var userLiked = _context.Likes
+                .Any(like => like.UserId == userId && like.PostId == id);
+
+            if (userLiked)
             {
-                return BadRequest(ModelState);
+                return NoContent(); // User has already liked, no action needed
             }
+
+            var newLike = new Like
+            {
+                UserId = userId,
+                PostId = id
+            };
+
+            _context.Likes.Add(newLike);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(
+                nameof(GetLikes),
+                new { id = newLike.LikeId },
+                newLike
+            );
         }
 
-        [HttpDelete("posts/{id}/likes/delete")]
+
+        [HttpDelete("posts/{postId}/likes/delete")]
         [Authorize] // Add this attribute for JWT authentication
-        public async Task<IActionResult> DeleteLike(int id)
+        public async Task<IActionResult> DeleteLike(int postId)
         {
-            var userLike = await _context.Likes.FindAsync(id);
-
-            if (userLike == null)
-            {
-                return NotFound();
-            }
-
-            // Check if the user has permission to delete this like (if needed)
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
                 return Unauthorized(); // Unauthorized if user claim is missing
             }
 
-            // Check if the user is the owner of the like (if needed)
+            var userId = int.Parse(userIdClaim.Value);
+
+            var userLike = await _context.Likes.FirstOrDefaultAsync(
+                like => like.UserId == userId && like.PostId == postId
+            );
+
+            if (userLike == null)
+            {
+                return NotFound();
+            }
 
             _context.Likes.Remove(userLike);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
+
+        [HttpGet("posts/{id}/likes/check")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<ActionResult<bool>> CheckLikeStatus(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Unauthorized if user claim is missing
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var userLiked = await _context.Likes
+                .AnyAsync(like => like.UserId == userId && like.PostId == id);
+
+            return userLiked;
+        }
+
 
         public IActionResult Privacy()
         {
