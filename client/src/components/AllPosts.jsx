@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useDispatch } from "react-redux";
-import { clearToken } from "../redux/authSlice"; // Import the clearToken action
+import { useDispatch, useSelector } from "react-redux";
+import { clearToken, selectToken } from "../redux/authSlice"; // Import the clearToken action and selectToken selector
 
 const AllPosts = () => {
   const [posts, setPosts] = useState([]);
+  const token = useSelector(selectToken); // Get token from Redux state
 
   useEffect(() => {
     axios
@@ -17,17 +18,22 @@ const AllPosts = () => {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    // Dispatch the clearToken action
-    dispatch(clearToken());
+    dispatch(clearToken()); // Clear token from Redux store
+    localStorage.removeItem("token"); // Remove token from localStorage
   };
 
   return (
     <div>
       <h1 className="text-center">All Posts</h1>
       <Link to="/posts/create">Create a new post</Link>
-      <Link to="/register">Register</Link>
-      <Link to="/login">Login</Link>
-      <button onClick={handleLogout}>Logout</button>
+      {token ? (
+        <button onClick={handleLogout}>Logout</button>
+      ) : (
+        <div>
+          <Link to="/register">Register</Link>
+          <Link to="/login">Login</Link>
+        </div>
+      )}
       {posts.length > 0 ? (
         <ul>
           {posts.map((Post) => (
@@ -48,7 +54,7 @@ const AllPosts = () => {
                   />
                 </Link>
                 <h3>{Post.caption}</h3>
-                <p>Likes: {Post.likeCount}</p> {/* Display the like count */}
+                <p>Likes: {Post.likeCount}</p>
               </div>
             </li>
           ))}

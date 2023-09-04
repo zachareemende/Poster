@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setToken } from "../redux/authSlice";
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const LoginUser = () => {
   const [LEmail, setLEmail] = useState("");
@@ -14,6 +13,10 @@ const LoginUser = () => {
   const errorMessage = location.state && location.state.error;
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Check if the user is already logged in
+  const token = useSelector((state) => state.auth.token);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,14 +31,27 @@ const LoginUser = () => {
 
       if (response.status === 200) {
         const token = response.data.token;
-        dispatch(setToken(token)); // Dispatch the token to Redux
+        dispatch(setToken(token));
+        localStorage.setItem("token", token);
+        navigate("/");
       }
       console.log("Login successful:", response.data);
     } catch (error) {
       console.error("Login failed:", error);
-    setError(errorMessage || "Login failed");
+
+      if (error.response && error.response.status === 400) {
+        setError("Invalid credentials. Please try again."); // Set specific error message for invalid credentials
+      } else {
+        setError(errorMessage || "Login failed");
+      }
     }
   };
+
+  useEffect(() => {
+    if (token !== null) {
+      navigate("/error", { state: { message: "You are already logged in." } });
+    }
+  }, []);
 
   return (
     <div>
@@ -61,8 +77,8 @@ const LoginUser = () => {
             required
           />
         </div>
-        {error && <p className="text-red-600" >{error}</p>}
-        {errorMessage && <p className="text-red-600" >{errorMessage}</p>}
+        {error && <p className="text-red-600">{error}</p>}
+        {errorMessage && <p className="text-red-600">{errorMessage}</p>}
         <button type="submit">Login</button>
       </form>
     </div>
