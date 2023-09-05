@@ -9,6 +9,8 @@ const SinglePostPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [commentContent, setCommentContent] = useState("");
   const user = useSelector((state) => state.auth);
+  const [visibleComments] = useState(5);
+  const [allCommentsVisible, setAllCommentsVisible] = useState(false);
 
   const navigate = useNavigate();
 
@@ -190,6 +192,10 @@ const SinglePostPage = () => {
       .catch((error) => console.error("Error fetching comments:", error));
   }, [postId]);
 
+  const toggleAllCommentsVisible = () => {
+    setAllCommentsVisible(!allCommentsVisible);
+  };
+
   return (
     <div className="container mx-auto p-4">
       <Link to="/" className="block mb-4 text-blue-500 hover:underline">
@@ -208,8 +214,8 @@ const SinglePostPage = () => {
                 className="mx-auto"
                 style={{
                   width: "100%",
-                  objectFit: "contain", // Change this to "contain" to fit without cropping
-                  height: "500px", // Set a fixed height for consistency
+                  objectFit: "contain",
+                  height: "500px",
                 }}
               />
             </div>
@@ -226,7 +232,6 @@ const SinglePostPage = () => {
             >
               {isLiked ? "Unlike" : "Like"}
             </button>
-            {/* Comment form */}
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Add a Comment:</h4>
               <textarea
@@ -245,17 +250,27 @@ const SinglePostPage = () => {
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Comments:</h4>
               <ul>
-                {post.comments.map((comment) => (
-                  <li key={comment.commentId} className="mb-4 border-b">
-                    <p className="text-black-600 mb-1">
-                      {comment.username}: {comment.text}
-                    </p>
-                    <p className="text-gray-600 text-xs">
-                      {timeAgo(comment.timestamp)}
-                    </p>
-                  </li>
-                ))}
+                {post.comments
+                  .slice(0, allCommentsVisible ? post.comments.length : visibleComments)
+                  .map((comment) => (
+                    <li key={comment.commentId} className="mb-4 border-b">
+                      <p className="text-black-600 mb-1">
+                        {comment.username}: {comment.text}
+                      </p>
+                      <p className="text-gray-600 text-xs">
+                        {timeAgo(comment.timestamp)}
+                      </p>
+                    </li>
+                  ))}
               </ul>
+              {post.comments.length > visibleComments && (
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
+                  onClick={toggleAllCommentsVisible}
+                >
+                  {allCommentsVisible ? "Hide Comments" : "See More Comments"}
+                </button>
+              )}
             </div>
           </div>
         </div>
