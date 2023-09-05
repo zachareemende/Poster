@@ -265,15 +265,27 @@ namespace Server.Controllers
         [HttpGet("posts/{id}/comments")]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)
         {
-            var postComments = await _context.Comments.Where(c => c.PostId == id).ToListAsync();
+            var comments = await _context.Comments
+                .Where(c => c.PostId == id)
+                .OrderByDescending(c => c.Timestamp)  // Order comments by timestamp in descending order
+                .Select(c => new
+                {
+                    c.CommentId,
+                    c.Text,
+                    c.Timestamp,
+                    UserId = c.User.UserId,
+                    Username = c.User.Username
+                })
+                .ToListAsync();
 
-            if (postComments == null)
+            if (comments == null)
             {
                 return NotFound();
             }
 
-            return postComments;
+            return Ok(comments);
         }
+
 
         [HttpPost("posts/{id}/comments/create")]
         [Authorize] // Add this attribute for JWT authentication

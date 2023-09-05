@@ -7,22 +7,25 @@ const SinglePostPage = () => {
   const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
-
-  const navigate = useNavigate();
+  const [commentContent, setCommentContent] = useState("");
   const user = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    axios
-      .get(`http://localhost:5244/api/poster/posts/${postId}`)
-      .then((response) => setPost(response.data))
-      .catch((error) => console.error("Error fetching post:", error));
-  }, [postId]);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user.token) {
-      checkIsLiked();
+  const loadComments = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}/comments`
+      );
+      const commentsWithUsernames = response.data.map((comment) => ({
+        ...comment,
+        username: comment.Username,
+      }));
+      setPost((prevPost) => ({ ...prevPost, comments: commentsWithUsernames }));
+    } catch (error) {
+      console.error("Error fetching comments:", error);
     }
-  }, [user.token]);
+  };
 
   const checkIsLiked = async () => {
     try {
@@ -39,6 +42,27 @@ const SinglePostPage = () => {
       console.error("Error checking like status:", error);
     }
   };
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5244/api/poster/posts/${postId}`)
+      .then((response) => setPost(response.data))
+      .catch((error) => console.error("Error fetching post:", error));
+
+    if (user.token) {
+      checkIsLiked();
+    }
+
+    loadComments(); // Load comments when component mounts
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId, user.token]);
+
+  useEffect(() => {
+    if (user.token) {
+      checkIsLiked();
+    }
+  }, [user.token]);
 
   const handleLikeClick = async () => {
     if (!user.token) {
@@ -78,6 +102,47 @@ const SinglePostPage = () => {
     }
   };
 
+  const handleCommentSubmit = async () => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const newComment = {
+        Text: commentContent,
+      };
+
+      await axios.post(
+        `http://localhost:5244/api/poster/posts/${postId}/comments/create`,
+        newComment,
+        config
+      );
+
+      // Fetch the updated comments after successfully creating a new comment
+      const updatedComments = await fetchCommentsWithUsernames(postId);
+
+      // Update the post with the new comments
+      setPost((prevPost) => ({
+        ...prevPost,
+        comments: updatedComments,
+      }));
+
+      // Clear the comment content
+      setCommentContent("");
+    } catch (error) {
+      console.error("Comment submission failed:", error);
+    }
+  };
+
   const timeAgo = (timestamp) => {
     const currentTimestamp = new Date().getTime();
     const commentTimestamp = new Date(timestamp).getTime();
@@ -101,6 +166,29 @@ const SinglePostPage = () => {
     const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
     return `${days}d`;
   };
+
+  const fetchCommentsWithUsernames = async (postId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}/comments`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchCommentsWithUsernames(postId)
+      .then((comments) => {
+        setPost((prevPost) => ({
+          ...prevPost,
+          comments: comments,
+        }));
+      })
+      .catch((error) => console.error("Error fetching comments:", error));
+  }, [postId]);
 
   return (
     <div className="container mx-auto p-4">
@@ -138,17 +226,29 @@ const SinglePostPage = () => {
             >
               {isLiked ? "Unlike" : "Like"}
             </button>
+            {/* Comment form */}
+            <div className="mt-4">
+              <h4 className="text-lg font-semibold mb-2">Add a Comment:</h4>
+              <textarea
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                placeholder="Write your comment here..."
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
+                onClick={handleCommentSubmit}
+              >
+                Submit Comment
+              </button>
+            </div>
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Comments:</h4>
               <ul>
                 {post.comments.map((comment) => (
                   <li key={comment.commentId} className="mb-4 border-b">
                     <p className="text-black-600 mb-1">
-                      {comment.username}:
-                      <span className="text-gray-600 mb-1">
-                        {" "}
-                        {comment.content}
-                      </span>
+                      {comment.username}: {comment.text}
                     </p>
                     <p className="text-gray-600 text-xs">
                       {timeAgo(comment.timestamp)}
