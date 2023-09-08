@@ -2,11 +2,13 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { clearToken, selectToken } from "../redux/authSlice";
+import { clearToken, selectToken, selectUsername } from "../redux/authSlice";
 
 const AllPosts = () => {
   const [posts, setPosts] = useState([]);
+
   const token = useSelector(selectToken);
+  const username = useSelector(selectUsername);
 
   useEffect(() => {
     axios
@@ -27,12 +29,39 @@ const AllPosts = () => {
     return comments.slice(0, 3); // Slice the first 3 comments
   };
 
+  const timeAgo = (timestamp) => {
+    const currentTimestamp = new Date().getTime();
+    const commentTimestamp = new Date(timestamp).getTime();
+    const timeDifference = currentTimestamp - commentTimestamp;
+
+    const seconds = Math.floor(timeDifference / 1000);
+    if (seconds < 60) {
+      return `${seconds}s`;
+    }
+
+    const minutes = Math.floor(timeDifference / (1000 * 60));
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+    if (hours < 24) {
+      return `${hours}h`;
+    }
+
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    return `${days}d`;
+  };
+
   return (
     <div>
       <h1 className="text-center">All Posts</h1>
       <Link to="/posts/create">Create a new post</Link>
       {token ? (
-        <button onClick={handleLogout}>Logout</button>
+        <div>
+          <p>Logged in as: {username}</p>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
       ) : (
         <div>
           <Link to="/register">Register</Link>
@@ -48,6 +77,7 @@ const AllPosts = () => {
                 style={{ maxWidth: "512px", width: "100%", height: "75%" }}
               >
                 <p>Posted by: {Post.username}</p>
+                <p>Posted: {timeAgo(Post.postedAt)}</p>
                 <Link to={`/posts/${Post.postId}`}>
                   <img
                     src={Post.imageUrl}

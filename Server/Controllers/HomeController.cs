@@ -34,6 +34,7 @@ namespace Server.Controllers
                 .Include(p => p.User)
                 .Include(p => p.Likes) // Include the Likes related to each post
                 .Include(p => p.Comments) // Include the Comments related to each post
+                .OrderByDescending(p => p.PostedAt) // Order posts by postedAt in descending order
                 .ToListAsync();
 
             var postsDto = postsWithLikesAndUsernames.Select(post => new
