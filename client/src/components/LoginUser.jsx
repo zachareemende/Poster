@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { setToken } from "../redux/authSlice";
+import { setToken, setUsername } from "../redux/authSlice";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const LoginUser = () => {
@@ -31,8 +31,11 @@ const LoginUser = () => {
 
       if (response.status === 200) {
         const token = response.data.token;
+        const username = response.data.username;
         dispatch(setToken(token));
+        dispatch(setUsername(username));
         localStorage.setItem("token", token);
+        localStorage.setItem("username", username);
         navigate("/");
       }
       console.log("Login successful:", response.data);

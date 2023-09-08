@@ -316,6 +316,35 @@ namespace Server.Controllers
             }
         }
 
+        // delete comment
+        [HttpDelete("posts/{postId}/comments/delete/{commentId}")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<IActionResult> DeleteComment(int postId, int commentId)
+        {
+            var userComment = await _context.Comments.FirstOrDefaultAsync(
+                comment => comment.CommentId == commentId && comment.PostId == postId
+            );
+
+            if (userComment == null)
+            {
+                return NotFound();
+            }
+
+            // Check if the user has permission to delete this comment (if needed)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Unauthorized if user claim is missing
+            }
+
+            // Check if the user is the owner of the comment (if needed)
+
+            _context.Comments.Remove(userComment);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet("posts/{id}/likes")]
         public async Task<ActionResult<IEnumerable<Like>>> GetLikes(int id)
         {

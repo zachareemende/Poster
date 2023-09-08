@@ -145,6 +145,39 @@ const SinglePostPage = () => {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      await axios.delete(
+        `http://localhost:5244/api/poster/posts/${postId}/comments/delete/${commentId}`,
+        config
+      );
+
+      // Fetch the updated comments after successfully deleting a comment
+      const updatedComments = await fetchCommentsWithUsernames(postId);
+
+      // Update the post with the new comments
+      setPost((prevPost) => ({
+        ...prevPost,
+        comments: updatedComments,
+      }));
+    } catch (error) {
+      console.error("Comment deletion failed:", error);
+    }
+  };
+
   const timeAgo = (timestamp) => {
     const currentTimestamp = new Date().getTime();
     const commentTimestamp = new Date(timestamp).getTime();
@@ -251,7 +284,10 @@ const SinglePostPage = () => {
               <h4 className="text-lg font-semibold mb-2">Comments:</h4>
               <ul>
                 {post.comments
-                  .slice(0, allCommentsVisible ? post.comments.length : visibleComments)
+                  .slice(
+                    0,
+                    allCommentsVisible ? post.comments.length : visibleComments
+                  )
                   .map((comment) => (
                     <li key={comment.commentId} className="mb-4 border-b">
                       <p className="text-black-600 mb-1">
@@ -260,6 +296,19 @@ const SinglePostPage = () => {
                       <p className="text-gray-600 text-xs">
                         {timeAgo(comment.timestamp)}
                       </p>
+                      {
+                        // Only show the delete button if the comment belongs to the logged in user
+                        comment.username === user.username && (
+                          <button
+                            className="bg-red-500 text-white px-2 py-1 rounded-md"
+                            onClick={() =>
+                              handleDeleteComment(comment.commentId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        )
+                      }
                     </li>
                   ))}
               </ul>
