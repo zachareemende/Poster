@@ -240,6 +240,7 @@ const SinglePostPage = () => {
           <h1 className="text-2xl font-semibold mb-4">Post Details</h1>
           <div className="border border-black border-solid p-4 rounded-lg shadow-md">
             <p className="mb-2 text-gray-600">Posted by: {post.username}</p>
+            <p className="mb-2 text-gray-600">Posted: {timeAgo(post.postedAt)}</p>
             <div className="mb-2 rounded-lg overflow-hidden">
               <img
                 src={post.imageUrl}
