@@ -32,10 +32,13 @@ const LoginUser = () => {
       if (response.status === 200) {
         const token = response.data.token;
         const username = response.data.username;
+
         dispatch(setToken(token));
         dispatch(setUsername(username));
+
         localStorage.setItem("token", token);
         localStorage.setItem("username", username);
+        
         navigate("/");
       }
       console.log("Login successful:", response.data);

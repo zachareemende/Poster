@@ -22,6 +22,11 @@ const AllPosts = () => {
     localStorage.removeItem("token");
   };
 
+  // Function to get the latest 3 comments for a post
+  const getLatestComments = (comments) => {
+    return comments.slice(0, 3); // Slice the first 3 comments
+  };
+
   return (
     <div>
       <h1 className="text-center">All Posts</h1>
@@ -40,7 +45,7 @@ const AllPosts = () => {
             <li key={Post.postId}>
               <div
                 className="border border-black border-solid p-4 mx-auto mb-4"
-                style={{ maxWidth: "512px", width: "100%", height: "640px" }}
+                style={{ maxWidth: "512px", width: "100%", height: "75%" }}
               >
                 <p>Posted by: {Post.username}</p>
                 <Link to={`/posts/${Post.postId}`}>
@@ -57,6 +62,18 @@ const AllPosts = () => {
                 </Link>
                 <h3>{Post.caption}</h3>
                 <p>Likes: {Post.likeCount}</p>
+                {Post.comments.length > 0 && (
+                  <div>
+                    <h4>Latest Comments:</h4>
+                    <ul>
+                      {getLatestComments(Post.comments).map((comment) => (
+                        <li key={comment.commentId}>
+                          {comment.username}: {comment.content}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </li>
           ))}

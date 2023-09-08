@@ -33,6 +33,7 @@ namespace Server.Controllers
             var postsWithLikesAndUsernames = await _context.Posts
                 .Include(p => p.User)
                 .Include(p => p.Likes) // Include the Likes related to each post
+                .Include(p => p.Comments) // Include the Comments related to each post
                 .ToListAsync();
 
             var postsDto = postsWithLikesAndUsernames.Select(post => new
@@ -43,7 +44,15 @@ namespace Server.Controllers
                 PostedAt = post.PostedAt,
                 UserId = post.UserId,
                 Username = post.User?.Username, // Get the username of the user who posted the photo
-                LikeCount = post.Likes.Count // Get the count of likes for the post
+                LikeCount = post.Likes.Count, // Get the count of likes for the post
+                Comments = post.Comments.Select(comment => new
+                {
+                    CommentId = comment.CommentId,
+                    Content = comment.Text,
+                    UserId = comment.UserId,
+                    Username = comment.User?.Username,
+                    Timestamp = comment.Timestamp
+                })
             });
 
             return Ok(postsDto);
