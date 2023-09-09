@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7Sfdu4sKkVVsttlb9WuGp2XoPTeD6gcKVZQ9PdWBJp7hmYbEDU2+sIoEEF+CbMK1nDSYuakWAdfE+hMZAL7nuw==",
+  "dgSpecHash": "hHkQsr+umkgAuq+XTv3aO9DW/PukKBx+kkWxF3OOxoQylKSR8DNgxD5/us8KTZaCi4Xovjay5Cy9ezA3J1LXmA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\zacha\\Documents\\VSCode\\projects\\Poster\\Server\\Server.csproj",
+  "projectFilePath": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\Server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\zacha\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\zacha\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\7.0.10\\microsoft.aspnetcore.authentication.jwtbearer.7.0.10.nupkg.sha512",

@@ -34,6 +34,7 @@ namespace Server.Controllers
                 .Include(p => p.User)
                 .Include(p => p.Likes) // Include the Likes related to each post
                 .Include(p => p.Comments) // Include the Comments related to each post
+                .ThenInclude(c => c.User) // Include the User related to each comment
                 .OrderByDescending(p => p.PostedAt) // Order posts by postedAt in descending order
                 .ToListAsync();
 
@@ -154,7 +155,10 @@ namespace Server.Controllers
         [HttpGet("users/{userId}/posts")]
         public async Task<ActionResult<IEnumerable<Post>>> GetUserPosts(int userId)
         {
-            var userPosts = await _context.Posts.Where(p => p.UserId == userId).ToListAsync();
+            var userPosts = await _context.Posts
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.PostedAt) // Order posts by postedAt in descending order
+                .ToListAsync();
 
             if (userPosts == null)
             {
