@@ -10,6 +10,7 @@ import LoginUser from "./components/LoginUser";
 import CreatePost from "./components/CreatePost";
 import ErrorPage from "./components/ErrorPage";
 import NotFound from "./components/NotFound";
+import SingleUser from "./components/SingleUser";
 
 const App = () => {
   const token = useSelector((state) => state.auth.token);
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/login" element={<LoginUser />} />
         <Route path="/register" element={<RegisterUser />} />
         <Route path="/posts/:postId" element={<SinglePostPage />} />
+        <Route path="/users/:userId" element={<SingleUser />} />
         <Route path="/" element={<AllPosts />} />
 
         {/* error handling */}

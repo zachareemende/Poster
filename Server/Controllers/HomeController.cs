@@ -157,15 +157,38 @@ namespace Server.Controllers
         {
             var userPosts = await _context.Posts
                 .Where(p => p.UserId == userId)
+                .Include(p => p.Likes) // Include the Likes navigation property
+                .Include(p => p.User) // Include the User navigation property
+                .Include(p => p.Comments) // Include the Comments navigation property
+                .ThenInclude(c => c.User) // Include the User related to each comment
                 .OrderByDescending(p => p.PostedAt) // Order posts by postedAt in descending order
                 .ToListAsync();
+
+            var postsDto = userPosts.Select(post => new
+            {
+                PostId = post.PostId,
+                ImageUrl = post.ImageUrl,
+                Caption = post.Caption,
+                PostedAt = post.PostedAt,
+                UserId = post.UserId,
+                Username = post.User?.Username, // Get the username of the user who posted the photo
+                LikeCount = post.Likes.Count, // Get the count of likes for the post
+                Comments = post.Comments.Select(comment => new
+                {
+                    CommentId = comment.CommentId,
+                    Content = comment.Text,
+                    UserId = comment.UserId,
+                    Username = comment.User?.Username,
+                    Timestamp = comment.Timestamp
+                })
+            });
 
             if (userPosts == null)
             {
                 return NotFound();
             }
 
-            return userPosts;
+            return Ok(postsDto);
         }
 
         [HttpGet("users/{id}")]

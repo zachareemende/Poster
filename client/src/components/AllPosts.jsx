@@ -76,7 +76,7 @@ const AllPosts = () => {
                 className="border border-black border-solid p-4 mx-auto mb-4"
                 style={{ maxWidth: "512px", width: "100%", height: "75%" }}
               >
-                <p>Posted by: {Post.username}</p>
+                <p>Posted by: <Link to={`users/${Post.userId}`}>{Post.username}</Link></p>
                 <p>Posted: {timeAgo(Post.postedAt)}</p>
                 <Link to={`/posts/${Post.postId}`}>
                   <img
