@@ -7,7 +7,7 @@ const SinglePostPage = () => {
   const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
-  const [commentContent, setCommentContent] = useState("");
+  const [commentText, setCommentText] = useState("");
   const [visibleComments] = useState(5);
   const [allCommentsVisible, setAllCommentsVisible] = useState(false);
   
@@ -121,7 +121,7 @@ const SinglePostPage = () => {
       };
 
       const newComment = {
-        Text: commentContent,
+        Text: commentText,
       };
 
       await axios.post(
@@ -139,8 +139,8 @@ const SinglePostPage = () => {
         comments: updatedComments,
       }));
 
-      // Clear the comment content
-      setCommentContent("");
+      // Clear the comment Text
+      setCommentText("");
     } catch (error) {
       console.error("Comment submission failed:", error);
     }
@@ -270,8 +270,8 @@ const SinglePostPage = () => {
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Add a Comment:</h4>
               <textarea
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Write your comment here..."
                 className="w-full p-2 border border-gray-300 rounded"
               />
@@ -300,7 +300,7 @@ const SinglePostPage = () => {
                       </p>
                       {
                         // Only show the delete button if the comment belongs to the logged in user
-                        comment.username === user.username && (
+                        comment.userId.toString() === user.userId && (
                           <button
                             className="bg-red-500 text-white px-2 py-1 rounded-md"
                             onClick={() =>

@@ -173,14 +173,16 @@ namespace Server.Controllers
                 UserId = post.UserId,
                 Username = post.User?.Username, // Get the username of the user who posted the photo
                 LikeCount = post.Likes.Count, // Get the count of likes for the post
-                Comments = post.Comments.Select(comment => new
-                {
-                    CommentId = comment.CommentId,
-                    Content = comment.Text,
-                    UserId = comment.UserId,
-                    Username = comment.User?.Username,
-                    Timestamp = comment.Timestamp
-                })
+                Comments = post.Comments
+            .OrderByDescending(comment => comment.Timestamp) // Order comments by timestamp in descending order
+            .Select(comment => new
+            {
+                CommentId = comment.CommentId,
+                Text = comment.Text,
+                UserId = comment.UserId,
+                Username = comment.User?.Username,
+                Timestamp = comment.Timestamp
+            })
             });
 
             if (userPosts == null)
@@ -304,7 +306,7 @@ namespace Server.Controllers
         {
             var comments = await _context.Comments
                 .Where(c => c.PostId == id)
-                .OrderByDescending(c => c.Timestamp)  // Order comments by timestamp in descending order
+                .OrderByDescending(c => c.Timestamp)
                 .Select(c => new
                 {
                     c.CommentId,

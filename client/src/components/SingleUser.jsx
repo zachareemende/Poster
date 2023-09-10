@@ -4,13 +4,11 @@ import { useParams, Link, useNavigate } from "react-router-dom"; // Import usePa
 import { useSelector } from "react-redux";
 
 const SingleUser = () => {
-  // Use useParams to get the userId from the URL parameter
   const { userId } = useParams();
   const [userPosts, setUserPosts] = useState([]);
-  const [isLiked, setIsLiked] = useState(false);
-  const [commentContent, setCommentContent] = useState("");
+  const [isLiked, setIsLiked] = useState({});
+  const [commentText, setCommentText] = useState("");
   const user = useSelector((state) => state.auth);
-
   const navigate = useNavigate();
 
   const loadPosts = async () => {
@@ -19,6 +17,7 @@ const SingleUser = () => {
         `http://localhost:5244/api/poster/users/${userId}/posts`
       );
       setUserPosts(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error("Error fetching user posts:", error);
     }
@@ -34,12 +33,19 @@ const SingleUser = () => {
           },
         }
       );
-      setIsLiked(response.data);
       return response.data;
     } catch (error) {
       console.error("Error checking like status:", error);
       return false;
     }
+  };
+
+  const initializeLikes = async () => {
+    const likes = {};
+    for (const post of userPosts) {
+      likes[post.postId] = await checkIsLiked(post.postId);
+    }
+    setIsLiked(likes);
   };
 
   const handleLikeClick = async (postId) => {
@@ -58,9 +64,9 @@ const SingleUser = () => {
       };
 
       // Check if the post is liked
-      const isLiked = await checkIsLiked(postId);
+      const isPostLiked = isLiked[postId];
 
-      if (isLiked) {
+      if (isPostLiked) {
         // Unlike the post
         await axios.delete(
           `http://localhost:5244/api/poster/posts/${postId}/likes/delete`,
@@ -79,6 +85,8 @@ const SingleUser = () => {
       const updatedPost = await axios.get(
         `http://localhost:5244/api/poster/posts/${postId}`
       );
+
+      // Update userPosts with the new like status and like count for the specific post
       setUserPosts((prevUserPosts) =>
         prevUserPosts.map((post) => {
           if (post.postId === postId) {
@@ -91,10 +99,25 @@ const SingleUser = () => {
         })
       );
 
-      // Update the isLiked state
-      setIsLiked(!isLiked);
+      // Update the isLiked state with the new like status for the specific post
+      setIsLiked((prevIsLiked) => ({
+        ...prevIsLiked,
+        [postId]: !isPostLiked,
+      }));
     } catch (error) {
       console.error("Like/Unlike failed:", error);
+    }
+  };
+
+  const fetchCommentsWithUsernames = async (postId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}/comments`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return [];
     }
   };
 
@@ -114,7 +137,7 @@ const SingleUser = () => {
       };
 
       const newComment = {
-        Text: commentContent,
+        Text: commentText,
       };
 
       await axios.post(
@@ -126,6 +149,8 @@ const SingleUser = () => {
       // Fetch the updated comments after successfully creating a new comment
       const updatedComments = await fetchCommentsWithUsernames(postId);
 
+      console.log("Updated Comments:", updatedComments);
+
       // Update the post with the new comments
       setUserPosts((prevUserPosts) =>
         prevUserPosts.map((post) => {
@@ -136,14 +161,50 @@ const SingleUser = () => {
         })
       );
 
-      // Clear the comment content
-      setCommentContent("");
+      // Clear the comment Text
+      setCommentText("");
     } catch (error) {
       console.error("Comment submission failed:", error);
     }
   };
 
-  // Other functions (timeAgo, fetchCommentsWithUsernames, etc.) remain the same
+  const handleDeleteComment = async (postId, commentId) => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Send a request to delete the comment
+      await axios.delete(
+        `http://localhost:5244/api/poster/posts/${postId}/comments/delete/${commentId}`,
+        config
+      );
+
+      // Fetch the updated comments after successfully deleting a comment
+      const updatedComments = await fetchCommentsWithUsernames(postId);
+
+      // Update the post with the new comments
+      setUserPosts((prevUserPosts) =>
+        prevUserPosts.map((post) => {
+          if (post.postId === postId) {
+            return { ...post, comments: updatedComments };
+          }
+          return post;
+        })
+      );
+    } catch (error) {
+      console.error("Comment deletion failed:", error);
+    }
+  };
 
   const timeAgo = (timestamp) => {
     const currentTimestamp = new Date().getTime();
@@ -169,30 +230,13 @@ const SingleUser = () => {
     return `${days}d`;
   };
 
-  const fetchCommentsWithUsernames = async (postId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5244/api/poster/posts/${postId}/comments`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      return [];
-    }
-  };
+  useEffect(() => {
+    loadPosts();
+  }, [userId]);
 
   useEffect(() => {
-    const initializeIsLiked = async () => {
-      if (userPosts.length > 0) {
-        const postId = userPosts[0].postId; // You can use any valid postId
-        const liked = await checkIsLiked(postId);
-        setIsLiked(liked);
-      }
-    };
-
-    loadPosts();
-    initializeIsLiked();
-  }, [userId]);
+    initializeLikes();
+  }, [userPosts]);
 
   return (
     <div className="container mx-auto p-4">
@@ -226,19 +270,19 @@ const SingleUser = () => {
             <p className="mb-2 text-gray-600">Likes: {post.likeCount}</p>
             <button
               className={
-                isLiked
+                isLiked[post.postId]
                   ? "bg-red-600 text-white px-4 py-2 rounded-md"
                   : "bg-blue-500 text-white px-4 py-2 rounded-md"
               }
               onClick={() => handleLikeClick(post.postId)}
             >
-              {isLiked ? "Unlike" : "Like"}
+              {isLiked[post.postId] ? "Unlike" : "Like"}
             </button>
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Add a Comment:</h4>
               <textarea
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Write your comment here..."
                 className="w-full p-2 border border-gray-300 rounded"
               />
@@ -255,12 +299,22 @@ const SingleUser = () => {
                 {post.comments.map((comment) => (
                   <li key={comment.commentId} className="mb-4 border-b">
                     <p className="text-black-600 mb-1">
-                      {comment.username}: {comment.content}
-                      {console.log(comment)}
+                      {comment.username}: {comment.text}
                     </p>
                     <p className="text-gray-600 text-xs">
                       {timeAgo(comment.timestamp)}
                     </p>
+                    {user.userId === comment.userId.toString() && (
+                      // Show the delete button for comments created by the logged-in user
+                      <button
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() =>
+                          handleDeleteComment(post.postId, comment.commentId)
+                        }
+                      >
+                        Delete
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
