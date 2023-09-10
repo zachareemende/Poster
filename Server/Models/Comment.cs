@@ -7,6 +7,7 @@ public class Comment
     public int CommentId { get; set; }
 
     [Required]
+    [MaxLength(2500)]
     public string Text { get; set; }
 
     public DateTime Timestamp { get; set; } = DateTime.Now;

@@ -220,8 +220,7 @@ const AllPosts = () => {
           {posts.map((Post) => (
             <li key={Post.postId}>
               <div
-                className="border border-black border-solid p-4 rounded-lg shadow-md mb-4" // Apply card styles
-                style={{ maxWidth: "640px", width: "100%" }}
+                className="md:border border-black border-solid border-t md:p-4 md:rounded-lg shadow-md mb-4 md:max-w-screen-sm w-screen pb-2" // Apply card styles
               >
                 <p className="mb-2">
                   Posted by:{" "}
@@ -237,12 +236,7 @@ const AllPosts = () => {
                   <img
                     src={Post.imageUrl}
                     alt="poster image"
-                    className="mx-auto"
-                    style={{
-                      width: "100%",
-                      objectFit: "contain",
-                      height: "500px",
-                    }}
+                    className="mx-auto object-contain h-auto w-full md:max-h-96"
                   />
                 </Link>
                 <h3 className="text-lg font-semibold mb-2">{Post.caption}</h3>
