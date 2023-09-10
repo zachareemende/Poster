@@ -47,7 +47,7 @@ namespace Server.Controllers
                 UserId = post.UserId,
                 Username = post.User?.Username, // Get the username of the user who posted the photo
                 LikeCount = post.Likes.Count, // Get the count of likes for the post
-                Comments = post.Comments.Select(comment => new
+                Comments = post.Comments.OrderByDescending(c => c.Timestamp).Select(comment => new
                 {
                     CommentId = comment.CommentId,
                     Content = comment.Text,
@@ -191,6 +191,19 @@ namespace Server.Controllers
             }
 
             return Ok(postsDto);
+        }
+
+        [HttpGet("users")]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        {
+            var allUsers = await _context.Users.ToListAsync();
+
+            if (allUsers == null)
+            {
+                return NotFound();
+            }
+
+            return allUsers;
         }
 
         [HttpGet("users/{id}")]

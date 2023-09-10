@@ -5,7 +5,7 @@ const NotFound = () => {
         <div>
             <h1 className='text-red-600'>Oops! You seem to be lost.</h1>
             <p>Here are some helpful links:</p>
-            <Link to='/'>Home</Link>
+            <Link className='mb-2 text-blue-500 hover:underline' to='/'>Home</Link>
         </div>
     )
 }

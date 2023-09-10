@@ -28,6 +28,7 @@ const App = () => {
         {/* error handling */}
         <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/users/undefined" element={<NotFound />} />
 
         {/* private routes */}
         <Route path="/posts/create" element={<ProtectedRoute />}>

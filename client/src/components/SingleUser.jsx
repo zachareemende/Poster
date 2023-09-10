@@ -8,6 +8,9 @@ const SingleUser = () => {
   const [userPosts, setUserPosts] = useState([]);
   const [isLiked, setIsLiked] = useState({});
   const [commentText, setCommentText] = useState("");
+  const [allCommentsVisible, setAllCommentsVisible] = useState(false);
+  const [visibleComments] = useState(5);
+
   const user = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
@@ -17,7 +20,6 @@ const SingleUser = () => {
         `http://localhost:5244/api/poster/users/${userId}/posts`
       );
       setUserPosts(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error fetching user posts:", error);
     }
@@ -296,32 +298,47 @@ const SingleUser = () => {
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Comments:</h4>
               <ul>
-                {post.comments.map((comment) => (
-                  <li key={comment.commentId} className="mb-4 border-b">
-                    <p className="text-black-600 mb-1">
-                      {comment.username}: {comment.text}
-                    </p>
-                    <p className="text-gray-600 text-xs">
-                      {timeAgo(comment.timestamp)}
-                    </p>
-                    {user.userId === comment.userId.toString() && (
-                      // Show the delete button for comments created by the logged-in user
-                      <button
-                        className="text-red-600 hover:text-red-800"
-                        onClick={() =>
-                          handleDeleteComment(post.postId, comment.commentId)
-                        }
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </li>
-                ))}
+                {post.comments
+                  .slice(
+                    0,
+                    allCommentsVisible ? post.comments.length : visibleComments
+                  )
+                  .map((comment) => (
+                    // Render your comment components here
+                    <li key={comment.commentId} className="mb-4 border-b">
+                      <p className="text-black-600 mb-1">
+                        {comment.username}: {comment.text}
+                      </p>
+                      <p className="text-gray-600 text-xs">
+                        {timeAgo(comment.timestamp)}
+                      </p>
+                      {user.userId === comment.userId.toString() && (
+                        // Show the delete button for comments created by the logged-in user
+                        <button
+                          className="text-red-600 hover:text-red-800"
+                          onClick={() =>
+                            handleDeleteComment(post.postId, comment.commentId)
+                          }
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </li>
+                  ))}
               </ul>
+              {post.comments.length > visibleComments && (
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
+                  onClick={() => setAllCommentsVisible(!allCommentsVisible)}
+                >
+                  {allCommentsVisible ? "Hide Comments" : "See More Comments"}
+                </button>
+              )}
             </div>
           </div>
         </div>
       ))}
+      {userPosts.length === 0 && <p>This user has no posts yet.</p>}
     </div>
   );
 };

@@ -9,7 +9,7 @@ const ErrorPage = () => {
     <div>
       <h2>Error</h2>
       {errorMessage && <p className="text-red-600">{errorMessage}</p>}
-      <Link to='/'>Home</Link>
+      <Link className="mb-2 text-blue-500 hover:underline" to='/'>Home</Link>
 
     </div>
   );
