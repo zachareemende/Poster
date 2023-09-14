@@ -1,11 +1,37 @@
 {
   "Version": 1,
-  "Hash": "z8/jf/uVtfFHkS7UZKSCL97FvnwEOhJPQdCo8dr/ZzU=",
+  "Hash": "mdFQ7ggaFT3Q+owpSROBq+V9ZtSUIS7fMFnz7en1F90=",
   "Source": "Server",
   "BasePath": "_content/Server",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "Server\\wwwroot",
+      "Source": "Server",
+      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
+      "BasePath": "_content/Server",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
+      "SourceId": "Server",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
+      "BasePath": "_content/Server",
+      "RelativePath": "ProfilePictures/bglohalw.dei.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\ProfilePictures\\bglohalw.dei.jpg"
+    }
+  ]
 }

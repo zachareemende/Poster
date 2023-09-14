@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Import useParams from react-router-dom
 import { useSelector } from "react-redux";
+import defaultProfilePicture from "../assets/images/defaultProfilePicture.png";
 
 const SingleUser = () => {
   const { userId } = useParams();
+  const [userProfile, setUserProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [canUploadProfilePicture, setCanUploadProfilePicture] = useState(false);
   const [isLiked, setIsLiked] = useState({});
   const [commentText, setCommentText] = useState("");
   const [allCommentsVisible, setAllCommentsVisible] = useState(false);
@@ -25,6 +29,17 @@ const SingleUser = () => {
     }
   };
 
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}`
+      );
+      setUserProfile(response.data);
+    } catch (error) {
+      console.error("Error fetching user profile", error);
+    }
+  };
+
   const checkIsLiked = async (postId) => {
     try {
       const response = await axios.get(
@@ -39,6 +54,65 @@ const SingleUser = () => {
     } catch (error) {
       console.error("Error checking like status:", error);
       return false;
+    }
+  };
+
+  const fetchUserProfilePicture = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/profilepicture`
+      );
+      if (response.data.startsWith("data:image/jpeg;base64,")) {
+        setProfilePicture(response.data);
+      } else {
+        setProfilePicture(null); // Set profilePicture to null if no profile picture is available
+      }
+
+      // Check if the current user is the owner of the profile being viewed
+      console.log("Current User ID:", user.userId);
+      console.log("Profile User ID:", userId);
+      if (user.userId.toString() === userId) {
+        console.log("User is the owner.");
+        setCanUploadProfilePicture(true);
+      } else {
+        console.log("User is not the owner.");
+      }
+    } catch (error) {
+      console.error("Error fetching profile picture:", error);
+    }
+  };
+
+  const handleProfilePictureUpload = async (e) => {
+    const targetFile = e.target.files[0];
+    const file = new FormData();
+    file.append("file", targetFile);
+
+    console.log(targetFile);
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          ContentType: "multipart/form-data",
+        },
+      };
+
+      await axios.post(
+        `http://localhost:5244/api/poster/users/${user.userId}/profilepicture/upload`,
+        file,
+        config
+      );
+
+      console.log("Profile picture uploaded successfully!");
+
+      // set the profile picture
+      console.log(targetFile);
+      setProfilePicture(targetFile);
+
+      // Fetch the updated profile picture
+      await fetchUserProfilePicture();
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
     }
   };
 
@@ -232,19 +306,55 @@ const SingleUser = () => {
     return `${days}d`;
   };
 
+  const dateOf = (timestamp) => {
+    const date = new Date(timestamp).toDateString();
+    return date;
+  };
+
   useEffect(() => {
     loadPosts();
+    fetchUserProfile();
   }, [userId]);
 
   useEffect(() => {
-    initializeLikes();
-  }, [userPosts]);
+    fetchUserProfilePicture();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      initializeLikes();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
       <Link to="/" className="block mb-4 text-blue-500 hover:underline">
         Back to all posts
       </Link>
+      {userProfile && (
+        <div className="mb-4">
+          <h1 className="text-2xl font-semibold mb-2">
+            {userProfile.username}
+          </h1>
+          <div>
+            <img
+              src={profilePicture ?? defaultProfilePicture}
+              alt="Profile"
+              className="w-32 h-32 rounded-full mx-auto mb-4"
+            />
+          </div>
+          {canUploadProfilePicture && (
+            <div className="mb-4">
+              <input type="file" onChange={handleProfilePictureUpload} />
+            </div>
+          )}
+          <p className="text-gray-600 mb-2">
+            Member since: {dateOf(userProfile.createdAt)}
+          </p>
+          <p className="text-gray-600 mb-2">Posts: {userPosts.length}</p>
+        </div>
+      )}
 
       <h1 className="text-2xl font-semibold mb-4">Posts</h1>
 

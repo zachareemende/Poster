@@ -102,3 +102,4 @@ C:\Users\zacha\Documents\VSCode\repos\Poster\Server\obj\Debug\net7.0\refint\Serv
 C:\Users\zacha\Documents\VSCode\repos\Poster\Server\obj\Debug\net7.0\Server.pdb
 C:\Users\zacha\Documents\VSCode\repos\Poster\Server\obj\Debug\net7.0\Server.genruntimeconfig.cache
 C:\Users\zacha\Documents\VSCode\repos\Poster\Server\obj\Debug\net7.0\ref\Server.dll
+C:\Users\zacha\Documents\VSCode\repos\Poster\Server\bin\Debug\net7.0\Server.staticwebassets.runtime.json

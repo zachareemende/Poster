@@ -7,6 +7,7 @@ using System.Security.Claims;
 // for include
 using Microsoft.EntityFrameworkCore;
 using Server.Services;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Server.Controllers
 {
@@ -216,7 +217,38 @@ namespace Server.Controllers
                 return NotFound();
             }
 
-            return oneUser;
+            var userDTO = new
+            {
+                UserId = oneUser.UserId,
+                Username = oneUser.Username,
+                Email = oneUser.Email,
+                Bio = oneUser.Bio,
+                ProfilePicture = oneUser.ProfilePicture,
+                CreatedAt = oneUser.CreatedAt,
+                UpdatedAt = oneUser.UpdatedAt,
+                Posts = oneUser.Posts.Select(post => new
+                {
+                    PostId = post.PostId,
+                    ImageUrl = post.ImageUrl,
+                    Caption = post.Caption,
+                    PostedAt = post.PostedAt,
+                    UserId = post.UserId,
+                    Username = post.User?.Username,
+                    LikeCount = post.Likes.Count, // Get the count of likes for the post
+                    Comments = post.Comments
+                .OrderByDescending(comment => comment.Timestamp) // Order comments by timestamp in descending order
+                .Select(comment => new
+                {
+                    CommentId = comment.CommentId,
+                    Text = comment.Text,
+                    UserId = comment.UserId,
+                    Username = comment.User?.Username,
+                    Timestamp = comment.Timestamp
+                })
+                })
+            };
+
+            return Ok(userDTO);
         }
 
         [HttpPost("users/create")]
@@ -313,6 +345,111 @@ namespace Server.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("users/{id}/profilepicture/upload")]
+        [Authorize]
+        public async Task<ActionResult<User>> UploadProfilePicture([FromForm] IFormFile file)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            string previousProfilePicture = user.ProfilePicture;
+
+            if (file != null)
+            {
+                // Delete the previous profile picture file if it exists
+                if (!string.IsNullOrEmpty(previousProfilePicture))
+                {
+                    var previousFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/ProfilePictures", previousProfilePicture);
+
+                    if (System.IO.File.Exists(previousFilePath))
+                    {
+                        System.IO.File.Delete(previousFilePath);
+                    }
+                }
+
+                // Continue with file upload as before
+
+                // Get the file extension
+                var extension = Path.GetExtension(file.FileName);
+
+                // Generate a random file name
+                var fileName = Path.GetRandomFileName() + extension;
+
+                // Get the path of the wwwroot folder
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/ProfilePictures");
+
+                // Create a new path combining the wwwroot folder and the file name
+                var filePath = Path.Combine(path, fileName);
+
+                // Create a new file stream where to copy the file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Update the user's profile picture
+                user.ProfilePicture = fileName;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(user);
+        }
+
+        [HttpGet("users/{id}/profilepicture")]
+        public async Task<IActionResult> GetProfilePicture(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrEmpty(user.ProfilePicture))
+            {
+                // Return a 204 No Content response when there is no profile picture
+                return NoContent();
+            }
+
+            // Get the path of the wwwroot folder
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/ProfilePictures");
+
+            // Get the file path
+            var filePath = Path.Combine(path, user.ProfilePicture);
+
+            try
+            {
+                // Read the file into a byte array
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+                // Return the file as a base64-encoded data URL
+                var base64Image = Convert.ToBase64String(fileBytes);
+                var dataUrl = $"data:image/jpeg;base64,{base64Image}";
+
+                return Content(dataUrl, "text/plain");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Error reading file:", ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+
+
+
 
         [HttpGet("posts/{id}/comments")]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)

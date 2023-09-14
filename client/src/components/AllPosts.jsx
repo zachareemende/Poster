@@ -77,10 +77,6 @@ const AllPosts = () => {
     return `${days}d`;
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   // Function to check if a post is liked by the current user
   const checkIsLiked = async (postId) => {
     try {
@@ -177,7 +173,6 @@ const AllPosts = () => {
 
   useEffect(() => {
     fetchUsers();
-    initializeLikes(); // Initialize likes on component mount
   }, []);
 
   return (
