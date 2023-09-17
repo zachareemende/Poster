@@ -127,7 +127,7 @@ namespace Server.Controllers
             }
         }
 
-        [HttpDelete("posts/delete/{id}")]
+        [HttpDelete("posts/{id}/delete")]
         [Authorize] // Add this attribute for JWT authentication
         public async Task<IActionResult> DeletePost(int id)
         {
@@ -447,9 +447,6 @@ namespace Server.Controllers
                 return StatusCode(500, "Internal Server Error");
             }
         }
-
-
-
 
         [HttpGet("posts/{id}/comments")]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)

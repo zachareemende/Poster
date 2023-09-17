@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Gv0tYQnO3xBBusZ2UOtFQ3RHlenamRINh2xcvI9CJDU=",
+  "Hash": "3hwCz7nRLWWDp/f1LwwuYrhg0Gj55vuH3HkCdnU03WY=",
   "Source": "Server",
   "BasePath": "_content/Server",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "Server\\wwwroot",
       "Source": "Server",
-      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
       "BasePath": "_content/Server",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\ProfilePictures\\ao4ncr4q.3p2.png",
+      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\ao4ncr4q.3p2.png",
       "SourceId": "Server",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
       "BasePath": "_content/Server",
       "RelativePath": "ProfilePictures/ao4ncr4q.3p2.png",
       "AssetKind": "All",
@@ -34,10 +34,10 @@
       "OriginalItemSpec": "wwwroot\\ProfilePictures\\ao4ncr4q.3p2.png"
     },
     {
-      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
+      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
       "SourceId": "Server",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
       "BasePath": "_content/Server",
       "RelativePath": "ProfilePictures/bglohalw.dei.jpg",
       "AssetKind": "All",

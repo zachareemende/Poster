@@ -90,7 +90,6 @@ const AllPosts = () => {
       );
       return response.data;
     } catch (error) {
-      console.error("Error checking like status:", error);
       return false;
     }
   };

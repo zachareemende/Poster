@@ -62,23 +62,22 @@ const SingleUser = () => {
       const response = await axios.get(
         `http://localhost:5244/api/poster/users/${userId}/profilepicture`
       );
+
       if (response.data.startsWith("data:image/jpeg;base64,")) {
         setProfilePicture(response.data);
       } else {
         setProfilePicture(null); // Set profilePicture to null if no profile picture is available
       }
 
-      // Check if the current user is the owner of the profile being viewed
-      console.log("Current User ID:", user.userId);
-      console.log("Profile User ID:", userId);
       if (user.userId.toString() === userId) {
         console.log("User is the owner.");
         setCanUploadProfilePicture(true);
       } else {
         console.log("User is not the owner.");
       }
+      
     } catch (error) {
-      console.error("Error fetching profile picture:", error);
+      console.error(error);
     }
   };
 
@@ -244,6 +243,41 @@ const SingleUser = () => {
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Send a request to delete the post
+      await axios.delete(
+        `http://localhost:5244/api/poster/posts/${postId}/delete`,
+        config
+      );
+
+      // Fetch the updated posts after successfully deleting a post
+      const updatedPosts = await loadPosts();
+
+      // Update the userPosts state with the new posts
+      if (updatedPosts !== undefined) {
+        setUserPosts(updatedPosts);
+      } else {
+        console.error("No data received when updating posts.");
+      }
+    } catch (error) {
+      console.error("Post deletion failed:", error);
+    }
+  };
+
   const handleDeleteComment = async (postId, commentId) => {
     if (!user.token) {
       navigate("/login", {
@@ -361,6 +395,15 @@ const SingleUser = () => {
       {userPosts.map((post) => (
         <div key={post.postId} className="mb-4">
           <div className="border border-black border-solid p-4 rounded-lg shadow-md">
+            {user.userId === post.userId.toString() && (
+              // Show the delete button for posts created by the logged-in user
+              <button
+                className="text-red-600 hover:text-red-800"
+                onClick={() => handleDeletePost(post.postId)}
+              >
+                Delete
+              </button>
+            )}
             <p className="mb-2 text-gray-600">Posted by: {post.username}</p>
             <p className="mb-2 text-gray-600">
               Posted: {timeAgo(post.postedAt)}
