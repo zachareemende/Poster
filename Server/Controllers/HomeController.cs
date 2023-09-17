@@ -127,7 +127,7 @@ namespace Server.Controllers
             }
         }
 
-        [HttpDelete("posts/delete/{id}")]
+        [HttpDelete("posts/{id}")]
         [Authorize] // Add this attribute for JWT authentication
         public async Task<IActionResult> DeletePost(int id)
         {
@@ -495,12 +495,18 @@ namespace Server.Controllers
 
             var userId = int.Parse(userIdClaim.Value);
 
+            // Check if the user is trying to follow themselves
+            if (userId == id)
+            {
+                return BadRequest("You cannot follow yourself.");
+            }
+
             var userFriend = _context.Friends
                 .Any(f => f.UserId == userId && f.FriendUserId == id);
 
             if (userFriend)
             {
-                return NoContent(); // User has already liked, no action needed
+                return NoContent(); // User has already followed, no action needed
             }
 
             var newFriend = new Friend
@@ -518,6 +524,7 @@ namespace Server.Controllers
                 newFriend
             );
         }
+
 
         [HttpDelete("users/{userId}/friends/delete/{friendId}")]
         [Authorize] // Add this attribute for JWT authentication

@@ -395,6 +395,39 @@ const SingleUser = () => {
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Send a request to delete the post
+      await axios.delete(
+        `http://localhost:5244/api/poster/posts/${postId}`,
+        config
+      );
+
+      // Fetch the updated posts after successfully deleting a post
+      const updatedPosts = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/posts`
+      );
+
+      // Update the userPosts state with the updated posts
+      setUserPosts(updatedPosts.data);
+    } catch (error) {
+      console.error("Post deletion failed:", error);
+    }
+  };
+
   const timeAgo = (timestamp) => {
     const currentTimestamp = new Date().getTime();
     const commentTimestamp = new Date(timestamp).getTime();
@@ -481,20 +514,25 @@ const SingleUser = () => {
             Member since: {dateOf(userProfile.createdAt)}
           </p>
           <p className="text-gray-600 mb-2">Posts: {userPosts.length}</p>
-          <button
-            className={
-              isFollowing
-                ? "bg-red-600 text-white px-4 py-2 rounded-md"
-                : "bg-blue-500 text-white px-4 py-2 rounded-md"
-            }
-            onClick={
-              isFollowing
-                ? () => handleUnfollowUser(loggedInUserId, userProfile.userId)
-                : handleFollowUser
-            }
-          >
-            {isFollowing ? "Unfollow" : "Follow"}
-          </button>
+          {/* Render the Follow button only if the logged-in user is different from the user page */}
+          {console.log(loggedInUserId, userId)}
+          {loggedInUserId.toString() !== userId && (
+            <button
+              className={
+                isFollowing
+                  ? "bg-red-600 text-white px-4 py-2 rounded-md"
+                  : "bg-blue-500 text-white px-4 py-2 rounded-md"
+              }
+              onClick={
+                isFollowing
+                  ? () => handleUnfollowUser(loggedInUserId, userProfile.userId)
+                  : handleFollowUser
+              }
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
+
           {/* Display user's friends */}
           {userFriends.length > 0 ? (
             <div className="mt-4">
@@ -529,6 +567,15 @@ const SingleUser = () => {
         <div key={post.postId} className="mb-4">
           <div className="border border-black border-solid p-4 rounded-lg shadow-md">
             <p className="mb-2 text-gray-600">Posted by: {post.username}</p>
+            {user.userId.toString() === post.userId.toString() && (
+              // Show the delete button for posts created by the logged-in user
+              <button
+                className="text-red-600 hover:text-red-800"
+                onClick={() => handleDeletePost(post.postId)}
+              >
+                Delete
+              </button>
+            )}
             <p className="mb-2 text-gray-600">
               Posted: {timeAgo(post.postedAt)}
             </p>
