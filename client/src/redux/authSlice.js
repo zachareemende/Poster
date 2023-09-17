@@ -31,6 +31,9 @@ export const selectToken = (state) => state.auth.token;
 
 export const selectUsername = (state) => state.auth.username;
 
-export const selectUserId = (state) => state.auth.userId; // Add a selector for userId
+export const selectUserId = (state) => {
+  const userId = state.auth.userId;
+  return userId ? parseInt(userId, 10) : null;
+};
 
 export default authSlice.reducer;

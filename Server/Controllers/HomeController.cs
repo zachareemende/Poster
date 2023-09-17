@@ -448,8 +448,104 @@ namespace Server.Controllers
             }
         }
 
+        [HttpGet("users/{id}/friends")]
+        public async Task<ActionResult<IEnumerable<User>>> GetFriends(int id)
+        {
+            var friends = await _context.Friends
+                .Where(f => f.UserId == id)
+                .Include(f => f.FriendUser)
+                .Select(f => f.FriendUser)
+                .ToListAsync();
 
+            if (friends == null)
+            {
+                return NotFound();
+            }
 
+            return Ok(friends);
+        }
+
+        [HttpGet("users/{id}/friends/check")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<ActionResult<bool>> CheckFriendStatus(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Unauthorized if user claim is missing
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var userFriend = await _context.Friends
+                .AnyAsync(f => f.UserId == userId && f.FriendUserId == id);
+
+            return userFriend;
+        }
+
+        [HttpPost("users/{id}/friends/add")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<ActionResult<Friend>> AddFriend(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            var userFriend = _context.Friends
+                .Any(f => f.UserId == userId && f.FriendUserId == id);
+
+            if (userFriend)
+            {
+                return NoContent(); // User has already liked, no action needed
+            }
+
+            var newFriend = new Friend
+            {
+                UserId = userId,
+                FriendUserId = id
+            };
+
+            _context.Friends.Add(newFriend);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(
+                nameof(GetFriends),
+                new { id = newFriend.FriendId },
+                newFriend
+            );
+        }
+
+        [HttpDelete("users/{userId}/friends/delete/{friendId}")]
+        [Authorize] // Add this attribute for JWT authentication
+        public async Task<IActionResult> DeleteFriend(int userId, int friendId)
+        {
+            var userFriend = await _context.Friends.FirstOrDefaultAsync(
+                friend => friend.FriendUserId == friendId && friend.UserId == userId
+            );
+
+            if (userFriend == null)
+            {
+                return NotFound();
+            }
+
+            // Check if the user has permission to delete this friend (if needed)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Unauthorized if user claim is missing
+            }
+
+            // Check if the user is the owner of the friend (if needed)
+
+            _context.Friends.Remove(userFriend);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
 
         [HttpGet("posts/{id}/comments")]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)

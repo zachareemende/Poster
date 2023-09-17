@@ -3,6 +3,7 @@ import axios from "axios";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Import useParams from react-router-dom
 import { useSelector } from "react-redux";
 import defaultProfilePicture from "../assets/images/defaultProfilePicture.png";
+import { selectUserId } from "../redux/authSlice";
 
 const SingleUser = () => {
   const { userId } = useParams();
@@ -14,9 +15,98 @@ const SingleUser = () => {
   const [commentText, setCommentText] = useState("");
   const [allCommentsVisible, setAllCommentsVisible] = useState(false);
   const [visibleComments] = useState(5);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [userFriends, setUserFriends] = useState([]);
+  const [friendProfilePictures, setFriendProfilePictures] = useState({});
 
   const user = useSelector((state) => state.auth);
+  const loggedInUserId = useSelector(selectUserId);
   const navigate = useNavigate();
+
+  const fetchUserFriends = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/friends`
+      );
+      setUserFriends(response.data);
+    } catch (error) {
+      console.error("Error fetching user friends:", error);
+    }
+  };
+
+  const checkIsFollowing = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/friends/check/`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      return false;
+    }
+  };
+
+  const handleFollowUser = async () => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Follow the user
+      await axios.post(
+        `http://localhost:5244/api/poster/users/${userId}/friends/add`,
+        {},
+        config
+      );
+
+      // Toggle the follow status
+      setIsFollowing(true);
+    } catch (error) {
+      console.error("Follow failed:", error);
+    }
+  };
+
+  const handleUnfollowUser = async (userId, friendId) => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Unfollow the user
+      await axios.delete(
+        `http://localhost:5244/api/poster/users/${userId}/friends/delete/${friendId}`,
+        config
+      );
+
+      // Toggle the follow status
+      setIsFollowing(false);
+    } catch (error) {
+      console.error("Unfollow failed:", error);
+    }
+  };
 
   const loadPosts = async () => {
     try {
@@ -68,9 +158,6 @@ const SingleUser = () => {
         setProfilePicture(null); // Set profilePicture to null if no profile picture is available
       }
 
-      // Check if the current user is the owner of the profile being viewed
-      console.log("Current User ID:", user.userId);
-      console.log("Profile User ID:", userId);
       if (user.userId.toString() === userId) {
         console.log("User is the owner.");
         setCanUploadProfilePicture(true);
@@ -79,6 +166,32 @@ const SingleUser = () => {
       }
     } catch (error) {
       console.error("Error fetching profile picture:", error);
+    }
+  };
+
+  const fetchFriendProfilePicture = async (friendId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${friendId}/profilepicture`
+      );
+      if (response.data.startsWith("data:image/jpeg;base64,")) {
+        // Update the friendProfilePictures state with the profile picture
+        setFriendProfilePictures((prevPictures) => ({
+          ...prevPictures,
+          [friendId]: response.data,
+        }));
+      } else {
+        // Set profilePicture to null if no profile picture is available
+        setFriendProfilePictures((prevPictures) => ({
+          ...prevPictures,
+          [friendId]: null,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching friend ${friendId}'s profile picture:`,
+        error
+      );
     }
   };
 
@@ -314,11 +427,26 @@ const SingleUser = () => {
   useEffect(() => {
     loadPosts();
     fetchUserProfile();
+    initializeLikes();
+    fetchUserFriends();
+    fetchUserProfilePicture();
   }, [userId]);
 
   useEffect(() => {
-    fetchUserProfilePicture();
-  }, []);
+    const checkIsFollowingStatus = async () => {
+      const followingStatus = await checkIsFollowing();
+      setIsFollowing(followingStatus);
+    };
+
+    checkIsFollowingStatus();
+  }, [userId]);
+
+  useEffect(() => {
+    // Assuming you have a list of friend objects with their IDs
+    userFriends.forEach((friend) => {
+      fetchFriendProfilePicture(friend.userId);
+    });
+  }, [userFriends]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -353,6 +481,45 @@ const SingleUser = () => {
             Member since: {dateOf(userProfile.createdAt)}
           </p>
           <p className="text-gray-600 mb-2">Posts: {userPosts.length}</p>
+          <button
+            className={
+              isFollowing
+                ? "bg-red-600 text-white px-4 py-2 rounded-md"
+                : "bg-blue-500 text-white px-4 py-2 rounded-md"
+            }
+            onClick={
+              isFollowing
+                ? () => handleUnfollowUser(loggedInUserId, userProfile.userId)
+                : handleFollowUser
+            }
+          >
+            {isFollowing ? "Unfollow" : "Follow"}
+          </button>
+          {/* Display user's friends */}
+          {userFriends.length > 0 ? (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Friends:</h3>
+              <ul>
+                {userFriends.map((friend) => (
+                  <li key={friend.userId} className="mb-2">
+                    <Link to={`/users/${friend.userId}`}>
+                      <img
+                        src={
+                          friendProfilePictures[friend.userId] ||
+                          defaultProfilePicture
+                        }
+                        alt={friend.username}
+                        className="w-8 h-8 rounded-full inline-block mr-2"
+                      />
+                      {friend.username}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="mt-4">This user has no friends yet.</p>
+          )}
         </div>
       )}
 
