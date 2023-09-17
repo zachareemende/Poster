@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\Server.csproj": {}
+    "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\Server.csproj": {
+    "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\Server.csproj",
+        "projectUniqueName": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\Server.csproj",
         "projectName": "Server",
-        "projectPath": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\Server.csproj",
+        "projectPath": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\Server.csproj",
         "packagesPath": "C:\\Users\\zacha\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\obj\\",
+        "outputPath": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\zacha\\AppData\\Roaming\\NuGet\\NuGet.Config"

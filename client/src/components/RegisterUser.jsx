@@ -27,7 +27,7 @@ const RegisterUser = () => {
 
       if (response.status === 201) {
         setRegistrationSuccess(true);
-        navigate("/"); // Redirect to the main page
+        navigate("/login"); // Redirect to the login page
       }
     } catch (error) {
       setError("Registration failed");

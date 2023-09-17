@@ -17,7 +17,7 @@ This document provides an overview of the backend API for Poster. The API handle
 
 1. Create a user account using `POST /api/poster/users/create`.
 2. Authenticate and get a JWT token using `POST /api/poster/users/login`.
-3. Use the token for authorized endpoints (e.g., `GET /api/poster/posts`, `POST /api/poster/posts/create`).
+3. Use the token for authorized endpoints (e.g. `POST /api/poster/posts/create`).
 
 ## API Endpoints
 

@@ -1,7 +1,11 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
+      "Id": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\ProfilePictures\\ao4ncr4q.3p2.png",
+      "PackagePath": "staticwebassets\\ProfilePictures\\ao4ncr4q.3p2.png"
+    },
+    {
+      "Id": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
       "PackagePath": "staticwebassets\\ProfilePictures\\bglohalw.dei.jpg"
     },
     {
