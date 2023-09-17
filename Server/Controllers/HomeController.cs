@@ -465,6 +465,23 @@ namespace Server.Controllers
             return Ok(friends);
         }
 
+        [HttpGet("users/{id}/followers")]
+        public async Task<ActionResult<IEnumerable<User>>> GetFollowers(int id)
+        {
+            var friends = await _context.Friends
+                .Where(f => f.FriendUserId == id)
+                .Include(f => f.User)
+                .Select(f => f.User)
+                .ToListAsync();
+
+            if (friends == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(friends);
+        }
+
         [HttpGet("users/{id}/friends/check")]
         [Authorize] // Add this attribute for JWT authentication
         public async Task<ActionResult<bool>> CheckFriendStatus(int id)

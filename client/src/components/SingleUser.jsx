@@ -17,6 +17,7 @@ const SingleUser = () => {
   const [visibleComments] = useState(5);
   const [isFollowing, setIsFollowing] = useState(false);
   const [userFriends, setUserFriends] = useState([]);
+  const [userFollowers, setUserFollowers] = useState([]);
   const [friendProfilePictures, setFriendProfilePictures] = useState({});
 
   const user = useSelector((state) => state.auth);
@@ -31,6 +32,17 @@ const SingleUser = () => {
       setUserFriends(response.data);
     } catch (error) {
       console.error("Error fetching user friends:", error);
+    }
+  };
+
+  const fetchUserFollowers = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/followers`
+      );
+      setUserFollowers(response.data);
+    } catch (error) {
+      console.error("Error fetching user followers:", error);
     }
   };
 
@@ -462,6 +474,7 @@ const SingleUser = () => {
     fetchUserProfile();
     initializeLikes();
     fetchUserFriends();
+    fetchUserFollowers();
     fetchUserProfilePicture();
   }, [userId]);
 
@@ -515,28 +528,29 @@ const SingleUser = () => {
           </p>
           <p className="text-gray-600 mb-2">Posts: {userPosts.length}</p>
           {/* Render the Follow button only if the logged-in user is different from the user page */}
-          {console.log(loggedInUserId, userId)}
-          {loggedInUserId.toString() !== userId && (
-            <button
-              className={
-                isFollowing
-                  ? "bg-red-600 text-white px-4 py-2 rounded-md"
-                  : "bg-blue-500 text-white px-4 py-2 rounded-md"
-              }
-              onClick={
-                isFollowing
-                  ? () => handleUnfollowUser(loggedInUserId, userProfile.userId)
-                  : handleFollowUser
-              }
-            >
-              {isFollowing ? "Unfollow" : "Follow"}
-            </button>
-          )}
+          {loggedInUserId &&
+            (loggedInUserId.toString() !== userId ? (
+              <button
+                className={
+                  isFollowing
+                    ? "bg-red-600 text-white px-4 py-2 rounded-md"
+                    : "bg-blue-500 text-white px-4 py-2 rounded-md"
+                }
+                onClick={
+                  isFollowing
+                    ? () =>
+                        handleUnfollowUser(loggedInUserId, userProfile.userId)
+                    : handleFollowUser
+                }
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
+              </button>
+            ) : null)}
 
-          {/* Display user's friends */}
+          {/* Display user's following */}
           {userFriends.length > 0 ? (
             <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Friends:</h3>
+              <h3 className="text-lg font-semibold mb-2">Following:</h3>
               <ul>
                 {userFriends.map((friend) => (
                   <li key={friend.userId} className="mb-2">
@@ -558,6 +572,30 @@ const SingleUser = () => {
           ) : (
             <p className="mt-4">This user has no friends yet.</p>
           )}
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Followers:</h3>
+            <ul>
+              {userFollowers.length > 0 ? (
+                userFollowers.map((follower) => (
+                  <li key={follower.userId} className="mb-2">
+                    <Link to={`/users/${follower.userId}`}>
+                      <img
+                        src={
+                          friendProfilePictures[follower.userId] ||
+                          defaultProfilePicture
+                        }
+                        alt={follower.username}
+                        className="w-8 h-8 rounded-full inline-block mr-2"
+                      />
+                      {follower.username}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <p className="mt-4">This user has no followers yet.</p>
+              )}
+            </ul>
+          </div>
         </div>
       )}
 
@@ -567,7 +605,7 @@ const SingleUser = () => {
         <div key={post.postId} className="mb-4">
           <div className="border border-black border-solid p-4 rounded-lg shadow-md">
             <p className="mb-2 text-gray-600">Posted by: {post.username}</p>
-            {user.userId.toString() === post.userId.toString() && (
+            {loggedInUserId ? loggedInUserId.toString() === post.userId.toString() && (
               // Show the delete button for posts created by the logged-in user
               <button
                 className="text-red-600 hover:text-red-800"
@@ -575,7 +613,8 @@ const SingleUser = () => {
               >
                 Delete
               </button>
-            )}
+            ) : null}
+
             <p className="mb-2 text-gray-600">
               Posted: {timeAgo(post.postedAt)}
             </p>
