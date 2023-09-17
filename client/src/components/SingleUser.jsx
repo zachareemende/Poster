@@ -528,29 +528,30 @@ const SingleUser = () => {
           </p>
           <p className="text-gray-600 mb-2">Posts: {userPosts.length}</p>
           {/* Render the Follow button only if the logged-in user is different from the user page */}
-          {loggedInUserId &&
-            (loggedInUserId.toString() !== userId ? (
-              <button
-                className={
-                  isFollowing
-                    ? "bg-red-600 text-white px-4 py-2 rounded-md"
-                    : "bg-blue-500 text-white px-4 py-2 rounded-md"
-                }
-                onClick={
-                  isFollowing
-                    ? () =>
-                        handleUnfollowUser(loggedInUserId, userProfile.userId)
-                    : handleFollowUser
-                }
-              >
-                {isFollowing ? "Unfollow" : "Follow"}
-              </button>
-            ) : null)}
+          {loggedInUserId
+            ? loggedInUserId.toString() !== userId && (
+                <button
+                  className={
+                    isFollowing
+                      ? "bg-red-600 text-white px-4 py-2 rounded-md"
+                      : "bg-blue-500 text-white px-4 py-2 rounded-md"
+                  }
+                  onClick={
+                    isFollowing
+                      ? () =>
+                          handleUnfollowUser(loggedInUserId, userProfile.userId)
+                      : handleFollowUser
+                  }
+                >
+                  {isFollowing ? "Unfollow" : "Follow"}
+                </button>
+              )
+            : null}
 
-          {/* Display user's following */}
+          {/* Display user's friends */}
           {userFriends.length > 0 ? (
             <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Following:</h3>
+              <h3 className="text-lg font-semibold mb-2">Friends:</h3>
               <ul>
                 {userFriends.map((friend) => (
                   <li key={friend.userId} className="mb-2">
@@ -605,16 +606,17 @@ const SingleUser = () => {
         <div key={post.postId} className="mb-4">
           <div className="border border-black border-solid p-4 rounded-lg shadow-md">
             <p className="mb-2 text-gray-600">Posted by: {post.username}</p>
-            {loggedInUserId ? loggedInUserId.toString() === post.userId.toString() && (
-              // Show the delete button for posts created by the logged-in user
-              <button
-                className="text-red-600 hover:text-red-800"
-                onClick={() => handleDeletePost(post.postId)}
-              >
-                Delete
-              </button>
-            ) : null}
-
+            {loggedInUserId
+              ? loggedInUserId.toString() === post.userId.toString() && (
+                  // Show the delete button for posts created by the logged-in user
+                  <button
+                    className="text-red-600 hover:text-red-800"
+                    onClick={() => handleDeletePost(post.postId)}
+                  >
+                    Delete
+                  </button>
+                )
+              : null}
             <p className="mb-2 text-gray-600">
               Posted: {timeAgo(post.postedAt)}
             </p>
