@@ -19,21 +19,12 @@ const SingleUser = () => {
   const [userFriends, setUserFriends] = useState([]);
   const [userFollowers, setUserFollowers] = useState([]);
   const [friendProfilePictures, setFriendProfilePictures] = useState({});
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const user = useSelector((state) => state.auth);
   const loggedInUserId = useSelector(selectUserId);
   const navigate = useNavigate();
-
-  const fetchUserFriends = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5244/api/poster/users/${userId}/friends`
-      );
-      setUserFriends(response.data);
-    } catch (error) {
-      console.error("Error fetching user friends:", error);
-    }
-  };
 
   const fetchUserFollowers = async () => {
     try {
@@ -42,6 +33,7 @@ const SingleUser = () => {
       );
       const followers = response.data;
       setUserFollowers(followers);
+      setFollowerCount(followers.length);
 
       // Fetch profile pictures for each follower
       followers.forEach((follower) => {
@@ -49,6 +41,19 @@ const SingleUser = () => {
       });
     } catch (error) {
       console.error("Error fetching user followers:", error);
+    }
+  };
+
+  const fetchUserFriends = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/friends`
+      );
+      const friends = response.data;
+      setUserFriends(friends);
+      setFollowingCount(friends.length);
+    } catch (error) {
+      console.error("Error fetching user friends:", error);
     }
   };
 
@@ -555,32 +560,10 @@ const SingleUser = () => {
             : null}
 
           {/* Display user's friends */}
-          {userFriends.length > 0 ? (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Following:</h3>
-              <ul>
-                {userFriends.map((friend) => (
-                  <li key={friend.userId} className="mb-2">
-                    <Link to={`/users/${friend.userId}`}>
-                      <img
-                        src={
-                          friendProfilePictures[friend.userId] ||
-                          defaultProfilePicture
-                        }
-                        alt={friend.username}
-                        className="w-8 h-8 rounded-full inline-block mr-2"
-                      />
-                      {friend.username}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <p className="mt-4">This user has no friends yet.</p>
-          )}
           <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Followers:</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Followers ({followerCount}):
+            </h3>
             <ul>
               {userFollowers.length > 0 ? (
                 userFollowers.map((follower) => (
@@ -600,6 +583,33 @@ const SingleUser = () => {
                 ))
               ) : (
                 <p className="mt-4">This user has no followers yet.</p>
+              )}
+            </ul>
+          </div>
+
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">
+              Following ({followingCount}):
+            </h3>
+            <ul>
+              {userFriends.length > 0 ? (
+                userFriends.map((friend) => (
+                  <li key={friend.userId} className="mb-2">
+                    <Link to={`/users/${friend.userId}`}>
+                      <img
+                        src={
+                          friendProfilePictures[friend.userId] ||
+                          defaultProfilePicture
+                        }
+                        alt={friend.username}
+                        className="w-8 h-8 rounded-full inline-block mr-2"
+                      />
+                      {friend.username}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <p className="mt-4">This user is not following anyone yet.</p>
               )}
             </ul>
           </div>
@@ -675,11 +685,28 @@ const SingleUser = () => {
                     allCommentsVisible ? post.comments.length : visibleComments
                   )
                   .map((comment) => (
-                    // Render your comment components here
                     <li key={comment.commentId} className="mb-4 border-b">
-                      <p className="text-black-600 mb-1">
-                        {comment.username}: {comment.text}
-                      </p>
+                      <div className="flex items-center">
+                        <Link to={`/users/${comment.userId}`} className="mr-2">
+                          <img
+                            src={
+                              friendProfilePictures[comment.userId] ||
+                              defaultProfilePicture
+                            }
+                            alt={comment.username}
+                            className="w-8 h-8 rounded-full mr-2"
+                          />
+                        </Link>
+                        <p className="text-black-600 mb-1">
+                          <Link
+                            to={`/users/${comment.userId}`}
+                            className="mr-2"
+                          >
+                            {comment.username}
+                          </Link>
+                          : {comment.text}
+                        </p>
+                      </div>
                       <p className="text-gray-600 text-xs">
                         {timeAgo(comment.timestamp)}
                       </p>
