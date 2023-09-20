@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "3hwCz7nRLWWDp/f1LwwuYrhg0Gj55vuH3HkCdnU03WY=",
+  "Hash": "dCFdjDgcZPFquhRJrOgvKlMG+vIUeBKNShZ4w0CBegU=",
   "Source": "Server",
   "BasePath": "_content/Server",
   "Mode": "Default",
@@ -34,12 +34,12 @@
       "OriginalItemSpec": "wwwroot\\ProfilePictures\\ao4ncr4q.3p2.png"
     },
     {
-      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
+      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bta4wlup.4j3.jpg",
       "SourceId": "Server",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
       "BasePath": "_content/Server",
-      "RelativePath": "ProfilePictures/bglohalw.dei.jpg",
+      "RelativePath": "ProfilePictures/bta4wlup.4j3.jpg",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -48,7 +48,24 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\ProfilePictures\\bglohalw.dei.jpg"
+      "OriginalItemSpec": "wwwroot\\ProfilePictures\\bta4wlup.4j3.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\pw0hvsdc.0io.jpg",
+      "SourceId": "Server",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\",
+      "BasePath": "_content/Server",
+      "RelativePath": "ProfilePictures/pw0hvsdc.0io.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\ProfilePictures\\pw0hvsdc.0io.jpg"
     }
   ]
 }

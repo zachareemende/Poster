@@ -21,6 +21,9 @@ const SingleUser = () => {
   const [friendProfilePictures, setFriendProfilePictures] = useState({});
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [commentUserProfilePictures, setCommentUserProfilePictures] = useState(
+    {}
+  );
 
   const user = useSelector((state) => state.auth);
   const loggedInUserId = useSelector(selectUserId);
@@ -136,7 +139,14 @@ const SingleUser = () => {
       const response = await axios.get(
         `http://localhost:5244/api/poster/users/${userId}/posts`
       );
-      setUserPosts(response.data);
+      const posts = response.data;
+
+      // Fetch comment user profiles for each post
+      for (const post of posts) {
+        fetchCommentUserProfiles(post.postId);
+      }
+
+      setUserPosts(posts);
     } catch (error) {
       console.error("Error fetching user posts:", error);
     }
@@ -215,6 +225,48 @@ const SingleUser = () => {
         `Error fetching friend ${friendId}'s profile picture:`,
         error
       );
+    }
+  };
+
+  const fetchCommentUserProfilePicture = async (userId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/profilepicture`
+      );
+      if (response.data.startsWith("data:image/jpeg;base64,")) {
+        // Update the commentUserProfilePictures state with the profile picture
+        setCommentUserProfilePictures((prevPictures) => ({
+          ...prevPictures,
+          [userId]: response.data,
+        }));
+      } else {
+        // Set profilePicture to null if no profile picture is available
+        setCommentUserProfilePictures((prevPictures) => ({
+          ...prevPictures,
+          [userId]: null,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching comment user ${userId}'s profile picture:`,
+        error
+      );
+    }
+  };
+
+  const fetchCommentUserProfiles = async (postId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}/comments`
+      );
+      const comments = response.data;
+
+      // Fetch the profile picture for each comment
+      for (const comment of comments) {
+        fetchCommentUserProfilePicture(comment.userId);
+      }
+    } catch (error) {
+      console.error("Error fetching comment user profiles:", error);
     }
   };
 
@@ -690,7 +742,7 @@ const SingleUser = () => {
                         <Link to={`/users/${comment.userId}`} className="mr-2">
                           <img
                             src={
-                              friendProfilePictures[comment.userId] ||
+                              commentUserProfilePictures[comment.userId] ||
                               defaultProfilePicture
                             }
                             alt={comment.username}

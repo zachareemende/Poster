@@ -5,8 +5,12 @@
       "PackagePath": "staticwebassets\\ProfilePictures\\ao4ncr4q.3p2.png"
     },
     {
-      "Id": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bglohalw.dei.jpg",
-      "PackagePath": "staticwebassets\\ProfilePictures\\bglohalw.dei.jpg"
+      "Id": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\bta4wlup.4j3.jpg",
+      "PackagePath": "staticwebassets\\ProfilePictures\\bta4wlup.4j3.jpg"
+    },
+    {
+      "Id": "C:\\Users\\zacha\\Documents\\VSCode\\repos\\Poster\\Server\\wwwroot\\ProfilePictures\\pw0hvsdc.0io.jpg",
+      "PackagePath": "staticwebassets\\ProfilePictures\\pw0hvsdc.0io.jpg"
     },
     {
       "Id": "obj\\Debug\\net7.0\\staticwebassets\\msbuild.Server.Microsoft.AspNetCore.StaticWebAssets.props",

@@ -448,6 +448,30 @@ namespace Server.Controllers
             }
         }
 
+        [HttpGet("posts/{id}/comments/profilepictures")]
+        public async Task<ActionResult<IEnumerable<User>>> GetCommentProfilePictures(int id)
+        {
+            var comments = await _context.Comments
+                .Where(c => c.PostId == id)
+                .Include(c => c.User)
+                .Select(c => c.User)
+                .ToListAsync();
+
+            if (comments == null)
+            {
+                return NotFound();
+            }
+
+            var profilePictures = comments.Select(comment => new
+            {
+                UserId = comment.UserId,
+                Username = comment.Username,
+                ProfilePicture = comment.ProfilePicture
+            });
+
+            return Ok(profilePictures);
+        }
+
         [HttpGet("users/{id}/friends")]
         public async Task<ActionResult<IEnumerable<User>>> GetFriends(int id)
         {
