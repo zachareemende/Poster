@@ -40,7 +40,13 @@ const SingleUser = () => {
       const response = await axios.get(
         `http://localhost:5244/api/poster/users/${userId}/followers`
       );
-      setUserFollowers(response.data);
+      const followers = response.data;
+      setUserFollowers(followers);
+
+      // Fetch profile pictures for each follower
+      followers.forEach((follower) => {
+        fetchFriendProfilePicture(follower.userId);
+      });
     } catch (error) {
       console.error("Error fetching user followers:", error);
     }
@@ -551,7 +557,7 @@ const SingleUser = () => {
           {/* Display user's friends */}
           {userFriends.length > 0 ? (
             <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Friends:</h3>
+              <h3 className="text-lg font-semibold mb-2">Following:</h3>
               <ul>
                 {userFriends.map((friend) => (
                   <li key={friend.userId} className="mb-2">
