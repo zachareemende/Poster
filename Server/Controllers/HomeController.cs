@@ -69,7 +69,7 @@ namespace Server.Controllers
             var userPost = await _context.Posts
                 .Include(p => p.Likes) // Include the Likes navigation property
                 .Include(p => p.User) // Include the User navigation property
-                .Include(p => p.Comments) // Include the Comments navigation property
+                .Include(p => p.Comments).ThenInclude(c => c.User) // Include the Comments navigation property
                 .FirstOrDefaultAsync(p => p.PostId == id);
 
             if (userPost == null)
@@ -89,11 +89,11 @@ namespace Server.Controllers
                 Comments = userPost.Comments.Select(comment => new
                 {
                     CommentId = comment.CommentId,
-                    Content = comment.Text,
+                    Text = comment.Text,
                     UserId = comment.UserId,
                     Username = comment.User?.Username,
                     Timestamp = comment.Timestamp
-                })
+                }).OrderByDescending(comment => comment.Timestamp)
             };
 
             return Ok(postDto);

@@ -2,6 +2,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import defaultProfilePicture from "../assets/images/defaultProfilePicture.png";
+import { selectUserId } from "../redux/authSlice";
 
 const SinglePostPage = () => {
   const { postId } = useParams();
@@ -10,68 +12,34 @@ const SinglePostPage = () => {
   const [commentText, setCommentText] = useState("");
   const [visibleComments] = useState(5);
   const [allCommentsVisible, setAllCommentsVisible] = useState(false);
-  
+  const [commentUserProfilePictures, setCommentUserProfilePictures] = useState(
+    {}
+  );
+
   const user = useSelector((state) => state.auth);
-  
+  const loggedInUserId = useSelector(selectUserId);
+
   const navigate = useNavigate();
 
-  const loadComments = async () => {
+  const loadPost = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5244/api/poster/posts/${postId}/comments`
+        `http://localhost:5244/api/poster/posts/${postId}`
       );
-      const commentsWithUsernames = response.data.map((comment) => ({
-        ...comment,
-        username: comment.Username,
-      }));
-      setPost((prevPost) => ({ ...prevPost, comments: commentsWithUsernames }));
+      setPost(response.data);
+
+      // Fetch the user profiles for comments
+      fetchCommentUserProfiles(postId);
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.log(`Error: ${error}`);
     }
   };
 
-  const checkIsLiked = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5244/api/poster/posts/${postId}/likes/check`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-      setIsLiked(response.data);
-    } catch (error) {
-      console.error("Error checking like status:", error);
-    }
-  };
-
-  useEffect(() => {
-    axios
-      .get(`http://localhost:5244/api/poster/posts/${postId}`)
-      .then((response) => setPost(response.data))
-      .catch((error) => console.error("Error fetching post:", error));
-
-    if (user.token) {
-      checkIsLiked();
-    }
-
-    loadComments(); // Load comments when component mounts
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postId, user.token]);
-
-  useEffect(() => {
-    if (user.token) {
-      checkIsLiked();
-    }
-  }, [user.token]);
-
-  const handleLikeClick = async () => {
+  const handleDeletePost = async (postId) => {
     if (!user.token) {
       navigate("/login", {
         state: { error: "You must be logged in to do this!" },
-      }); // Redirect to login page with error message
+      });
       return;
     }
 
@@ -82,13 +50,48 @@ const SinglePostPage = () => {
         },
       };
 
-      if (isLiked) {
+      // Send a request to delete the post
+      await axios.delete(
+        `http://localhost:5244/api/poster/posts/${postId}`,
+        config
+      );
+
+      // Fetch the updated posts after successfully deleting a post
+      const updatedPost = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}`
+      );
+
+      // Update the userPosts state with the updated posts
+      setPost(updatedPost.data);
+    } catch (error) {
+      console.error("Post deletion failed:", error);
+    }
+  };
+
+  const handleLikeClick = async (postId) => {
+    if (!user.token) {
+      navigate("/login", {
+        state: { error: "You must be logged in to do this!" },
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      // Check if the post is liked
+      const isPostLiked = isLiked[postId];
+
+      if (isPostLiked) {
         // Unlike the post
         await axios.delete(
           `http://localhost:5244/api/poster/posts/${postId}/likes/delete`,
           config
         );
-        setPost({ ...post, likeCount: post.likeCount - 1 });
       } else {
         // Like the post
         await axios.post(
@@ -96,16 +99,27 @@ const SinglePostPage = () => {
           {},
           config
         );
-        setPost({ ...post, likeCount: post.likeCount + 1 });
       }
 
-      setIsLiked(!isLiked); // Toggle the like status
+      // Fetch the updated like count
+      const updatedPost = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}`
+      );
+
+      // Update userPosts with the new like status and like count for the specific post
+      setPost(updatedPost.data);
+
+      // Update the isLiked state with the new like status for the specific post
+      setIsLiked((prevIsLiked) => ({
+        ...prevIsLiked,
+        [postId]: !isPostLiked,
+      }));
     } catch (error) {
       console.error("Like/Unlike failed:", error);
     }
   };
 
-  const handleCommentSubmit = async () => {
+  const handleCommentSubmit = async (postId) => {
     if (!user.token) {
       navigate("/login", {
         state: { error: "You must be logged in to do this!" },
@@ -130,14 +144,14 @@ const SinglePostPage = () => {
         config
       );
 
-      // Fetch the updated comments after successfully creating a new comment
-      const updatedComments = await fetchCommentsWithUsernames(postId);
+      // Directly fetch the updated post after successfully creating a new comment
+      const updatedPost = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}`
+      );
+      setPost(updatedPost.data);
 
-      // Update the post with the new comments
-      setPost((prevPost) => ({
-        ...prevPost,
-        comments: updatedComments,
-      }));
+      // Fetch the comment user profiles for updated post
+      fetchCommentUserProfiles(postId);
 
       // Clear the comment Text
       setCommentText("");
@@ -146,7 +160,7 @@ const SinglePostPage = () => {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (postId, commentId) => {
     if (!user.token) {
       navigate("/login", {
         state: { error: "You must be logged in to do this!" },
@@ -161,23 +175,93 @@ const SinglePostPage = () => {
         },
       };
 
+      // Send a request to delete the comment
       await axios.delete(
         `http://localhost:5244/api/poster/posts/${postId}/comments/delete/${commentId}`,
         config
       );
 
-      // Fetch the updated comments after successfully deleting a comment
-      const updatedComments = await fetchCommentsWithUsernames(postId);
+      // Directly fetch the updated post after successfully deleting a comment
+      const updatedPost = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}`
+      );
+      setPost(updatedPost.data);
 
-      // Update the post with the new comments
-      setPost((prevPost) => ({
-        ...prevPost,
-        comments: updatedComments,
-      }));
+      // Fetch the comment user profiles for updated post
+      fetchCommentUserProfiles(postId);
     } catch (error) {
       console.error("Comment deletion failed:", error);
     }
   };
+
+  const fetchCommentUserProfilePicture = async (userId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/users/${userId}/profilepicture`
+      );
+      if (response.data.startsWith("data:image/jpeg;base64,")) {
+        // Update the commentUserProfilePictures state with the profile picture
+        setCommentUserProfilePictures((prevPictures) => ({
+          ...prevPictures,
+          [userId]: response.data,
+        }));
+      } else {
+        // Set profilePicture to null if no profile picture is available
+        setCommentUserProfilePictures((prevPictures) => ({
+          ...prevPictures,
+          [userId]: null,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching comment user ${userId}'s profile picture:`,
+        error
+      );
+    }
+  };
+
+  const fetchCommentUserProfiles = async (postId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}/comments`
+      );
+      const comments = response.data;
+
+      // Fetch the profile picture for each comment
+      for (const comment of comments) {
+        fetchCommentUserProfilePicture(comment.userId);
+      }
+    } catch (error) {
+      console.error("Error fetching comment user profiles:", error);
+    }
+  };
+
+  const checkIsLiked = async (postId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5244/api/poster/posts/${postId}/likes/check`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error checking like status:", error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    // Check if the post is liked
+    checkIsLiked(postId).then((isLiked) => {
+      setIsLiked((prevIsLiked) => ({
+        ...prevIsLiked,
+        [postId]: isLiked,
+      }));
+    });
+  }, [postId, user.token]);
 
   const timeAgo = (timestamp) => {
     const currentTimestamp = new Date().getTime();
@@ -203,32 +287,9 @@ const SinglePostPage = () => {
     return `${days}d`;
   };
 
-  const fetchCommentsWithUsernames = async (postId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5244/api/poster/posts/${postId}/comments`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      return [];
-    }
-  };
-
   useEffect(() => {
-    fetchCommentsWithUsernames(postId)
-      .then((comments) => {
-        setPost((prevPost) => ({
-          ...prevPost,
-          comments: comments,
-        }));
-      })
-      .catch((error) => console.error("Error fetching comments:", error));
-  }, [postId]);
-
-  const toggleAllCommentsVisible = () => {
-    setAllCommentsVisible(!allCommentsVisible);
-  };
+    loadPost();
+  }, [postId, loggedInUserId]);
 
   return (
     <div className="container mx-auto p-4">
@@ -237,11 +298,23 @@ const SinglePostPage = () => {
       </Link>
 
       {post ? (
-        <div>
-          <h1 className="text-2xl font-semibold mb-4">Post Details</h1>
+        <div key={post.postId} className="mb-4">
           <div className="border border-black border-solid p-4 rounded-lg shadow-md">
             <p className="mb-2 text-gray-600">Posted by: {post.username}</p>
-            <p className="mb-2 text-gray-600">Posted: {timeAgo(post.postedAt)}</p>
+            {loggedInUserId
+              ? loggedInUserId === post.userId && (
+                  // Show the delete button for posts created by the logged-in user
+                  <button
+                    className="text-red-600 hover:text-red-800"
+                    onClick={() => handleDeletePost(post.postId)}
+                  >
+                    Delete
+                  </button>
+                )
+              : null}
+            <p className="mb-2 text-gray-600">
+              Posted: {timeAgo(post.postedAt)}
+            </p>
             <div className="mb-2 rounded-lg overflow-hidden">
               <img
                 src={post.imageUrl}
@@ -259,13 +332,13 @@ const SinglePostPage = () => {
             <p className="mb-2 text-gray-600">Likes: {post.likeCount}</p>
             <button
               className={
-                isLiked
+                isLiked[post.postId]
                   ? "bg-red-600 text-white px-4 py-2 rounded-md"
                   : "bg-blue-500 text-white px-4 py-2 rounded-md"
               }
-              onClick={handleLikeClick}
+              onClick={() => handleLikeClick(post.postId)}
             >
-              {isLiked ? "Unlike" : "Like"}
+              {isLiked[post.postId] ? "Unlike" : "Like"}
             </button>
             <div className="mt-4">
               <h4 className="text-lg font-semibold mb-2">Add a Comment:</h4>
@@ -277,7 +350,7 @@ const SinglePostPage = () => {
               />
               <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
-                onClick={handleCommentSubmit}
+                onClick={() => handleCommentSubmit(post.postId)}
               >
                 Submit Comment
               </button>
@@ -292,32 +365,48 @@ const SinglePostPage = () => {
                   )
                   .map((comment) => (
                     <li key={comment.commentId} className="mb-4 border-b">
-                      <p className="text-black-600 mb-1">
-                        {comment.username}: {comment.text}
-                      </p>
+                      <div className="flex items-center">
+                        <Link to={`/users/${comment.userId}`} className="mr-2">
+                          <img
+                            src={
+                              commentUserProfilePictures[comment.userId] ||
+                              defaultProfilePicture
+                            }
+                            alt={comment.username}
+                            className="w-8 h-8 rounded-full mr-2"
+                          />
+                        </Link>
+                        <p className="text-black-600 mb-1">
+                          <Link
+                            to={`/users/${comment.userId}`}
+                            className="mr-2"
+                          >
+                            {comment.username}
+                          </Link>
+                          : {comment.text}
+                        </p>
+                      </div>
                       <p className="text-gray-600 text-xs">
                         {timeAgo(comment.timestamp)}
                       </p>
-                      {
-                        // Only show the delete button if the comment belongs to the logged in user
-                        comment.userId.toString() === user.userId && (
-                          <button
-                            className="bg-red-500 text-white px-2 py-1 rounded-md"
-                            onClick={() =>
-                              handleDeleteComment(comment.commentId)
-                            }
-                          >
-                            Delete
-                          </button>
-                        )
-                      }
+                      {loggedInUserId === comment.userId && (
+                        // Show the delete button for comments created by the logged-in user
+                        <button
+                          className="text-red-600 hover:text-red-800"
+                          onClick={() =>
+                            handleDeleteComment(post.postId, comment.commentId)
+                          }
+                        >
+                          Delete
+                        </button>
+                      )}
                     </li>
                   ))}
               </ul>
               {post.comments.length > visibleComments && (
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
-                  onClick={toggleAllCommentsVisible}
+                  onClick={() => setAllCommentsVisible(!allCommentsVisible)}
                 >
                   {allCommentsVisible ? "Hide Comments" : "See More Comments"}
                 </button>

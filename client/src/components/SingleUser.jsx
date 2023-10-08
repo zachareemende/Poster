@@ -762,7 +762,7 @@ const SingleUser = () => {
                       <p className="text-gray-600 text-xs">
                         {timeAgo(comment.timestamp)}
                       </p>
-                      {user.userId === comment.userId.toString() && (
+                      {loggedInUserId === comment.userId && (
                         // Show the delete button for comments created by the logged-in user
                         <button
                           className="text-red-600 hover:text-red-800"
